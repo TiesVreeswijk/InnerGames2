@@ -170,7 +170,9 @@ class SimpleCardScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const DecisionScreen(),
+                      builder: (context) => DecisionScreen(
+                      choice: card.choices!.first, // Pass the first choice
+                      ),
                     ),
                   );
                 } else {

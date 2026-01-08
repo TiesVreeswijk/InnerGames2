@@ -1,8 +1,4 @@
-
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/game_provider.dart';
-import 'qr_scanner_screen.dart';
 
 class JoinPinScreen extends StatefulWidget {
   const JoinPinScreen({Key? key}) : super(key: key);
@@ -13,12 +9,18 @@ class JoinPinScreen extends StatefulWidget {
 
 class _JoinPinScreenState extends State<JoinPinScreen> {
   String _pin = '';
+  bool _isValidating = false;
 
   void _addDigit(String digit) {
     if (_pin.length < 4) {
       setState(() {
         _pin += digit;
       });
+      
+      // Auto-validate when 4 digits entered
+      if (_pin.length == 4) {
+        _validateAndContinue();
+      }
     }
   }
 
@@ -30,276 +32,202 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
     }
   }
 
-  Future<void> _joinGame() async {
-    if (_pin.length == 4) {
-      final gameProvider = Provider.of<GameProvider>(context, listen: false);
-      final success = await gameProvider.joinGame(_pin, 'Player');
-      
-      if (success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Joined game successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context);
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Invalid PIN code'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+  Future<void> _validateAndContinue() async {
+    if (_pin.length != 4) return;
+
+    setState(() {
+      _isValidating = true;
+    });
+
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (!mounted) return;
+
+    setState(() {
+      _isValidating = false;
+    });
+
+    // Go to name entry
+    Navigator.pushReplacementNamed(
+      context,
+      '/name-entry',
+      arguments: {'pin': _pin},
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFD4A574),
-      body: SafeArea(
-        child: Container(
-          // WHITE BACKGROUND CONTAINER
-          margin: const EdgeInsets.only(top: 100),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(32),
-              topRight: Radius.circular(32),
+      backgroundColor: const Color(0xFFF5E6D3),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.close, color: Color(0xFF2C3E7E)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/images/logo.png',
+              height: 40,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: 40,
+                  height: 40,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFE91E63),
+                    shape: BoxShape.circle,
+                  ),
+                );
+              },
             ),
-          ),
-          child: Column(
-            children: [
-              // Header bar (tan color)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFD4A574),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(32),
-                    topRight: Radius.circular(32),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    // Logo
-                    Image.asset(
-                      'assets/images/logo.png',
-                      height: 40,
-                      width: 40,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Icon(Icons.favorite, size: 40, color: Color(0xFFE91E8C)),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'Sociality',
-                      style: TextStyle(
-                        color: Color(0xFF3949AB),
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close, size: 28),
-                    ),
-                  ],
-                ),
+            const SizedBox(width: 12),
+            const Text(
+              'Sociality',
+              style: TextStyle(
+                color: Color(0xFF2C3E7E),
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
               ),
-              
-              // Title
-              const Padding(
-                padding: EdgeInsets.all(24.0),
-                child: Text(
-                  'Deelnemen aan spel',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+            ),
+          ],
+        ),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            const SizedBox(height: 40),
+            
+            // Title
+            const Text(
+              'Deelnemen aan spel',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
               ),
-              
-              const SizedBox(height: 40),
-              
-              // PIN Display
-              Text(
-                _pin.isEmpty ? 'PIN' : _pin,
-                style: TextStyle(
-                  fontSize: 72,
-                  fontWeight: FontWeight.bold,
-                  color: _pin.isEmpty ? Colors.grey[300] : Colors.black,
-                  letterSpacing: 20,
-                ),
+            ),
+            
+            const SizedBox(height: 60),
+            
+            // PIN Display - SIMPLE like old design (just big numbers)
+            Text(
+              _pin.isEmpty ? '' : _pin,
+              style: const TextStyle(
+                fontSize: 80,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2C3E7E),
+                letterSpacing: 20,
               ),
-              
-              const Spacer(),
-              
-              // Join Button
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _pin.length == 4 ? _joinGame : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3949AB),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                      disabledBackgroundColor: Colors.grey[300],
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Join game',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Icon(Icons.arrow_forward, size: 24),
-                      ],
-                    ),
-                  ),
-                ),
+            ),
+            
+            const SizedBox(height: 24),
+            
+            // Subtitle
+            Text(
+              'Voer de 4-cijferige PIN in',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade600,
               ),
-              
-              const SizedBox(height: 16),
-              
-              // Toggle Buttons
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE91E8C),
-                          borderRadius: BorderRadius.circular(28),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'Pin invoeren',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+            ),
+            
+            const Spacer(),
+            
+            // Number pad
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
+              child: Column(
+                children: [
+                  // Rows 1-3
+                  ...List.generate(3, (row) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Row(
+                        children: List.generate(3, (col) {
+                          final number = (row * 3 + col + 1).toString();
+                          return Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 6),
+                              child: _buildNumberButton(number),
                             ),
-                          ),
+                          );
+                        }),
+                      ),
+                    );
+                  }),
+                  
+                  // Row 4: Empty, 0, Backspace
+                  Row(
+                    children: [
+                      const Expanded(child: SizedBox()),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          child: _buildNumberButton('0'),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: SizedBox(
-                        height: 56,
-                        child: OutlinedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const QRScannerScreen(),
-                              ),
-                            );
-                          },
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor: const Color(0xFFF5E6D3),
-                            side: BorderSide.none,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(28),
-                            ),
-                          ),
-                          child: const Text(
-                            'QR-code scannen',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          child: _buildBackspaceButton(),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ),
-              
-              const SizedBox(height: 32),
-              
-              // Number Pad
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: GridView.count(
-                  shrinkWrap: true,
-                  crossAxisCount: 3,
-                  childAspectRatio: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  children: [
-                    _buildNumberButton('1'),
-                    _buildNumberButton('2'),
-                    _buildNumberButton('3'),
-                    _buildNumberButton('4'),
-                    _buildNumberButton('5'),
-                    _buildNumberButton('6'),
-                    _buildNumberButton('7'),
-                    _buildNumberButton('8'),
-                    _buildNumberButton('9'),
-                    const SizedBox(), // Empty space
-                    _buildNumberButton('0'),
-                    _buildDeleteButton(),
-                  ],
-                ),
-              ),
-              
-              const SizedBox(height: 40),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildNumberButton(String number) {
-    return ElevatedButton(
-      onPressed: () => _addDigit(number),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF3949AB),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
+    return SizedBox(
+      height: 70,
+      child: ElevatedButton(
+        onPressed: _isValidating ? null : () => _addDigit(number),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF2C3E7E),
+          disabledBackgroundColor: Colors.grey.shade300,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(35),
+          ),
+          elevation: 2,
         ),
-      ),
-      child: Text(
-        number,
-        style: const TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
+        child: Text(
+          number,
+          style: const TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildDeleteButton() {
-    return ElevatedButton(
-      onPressed: _removeDigit,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
-          side: const BorderSide(color: Color(0xFF3949AB), width: 2),
+  Widget _buildBackspaceButton() {
+    return SizedBox(
+      height: 70,
+      child: ElevatedButton(
+        onPressed: _isValidating || _pin.isEmpty ? null : _removeDigit,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.grey.shade300,
+          disabledBackgroundColor: Colors.grey.shade200,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(35),
+          ),
+          elevation: 2,
         ),
-      ),
-      child: const Icon(
-        Icons.backspace_outlined,
-        size: 28,
-        color: Color(0xFF3949AB),
+        child: Icon(
+          Icons.backspace_outlined,
+          color: _pin.isEmpty ? Colors.grey.shade400 : const Color(0xFF2C3E7E),
+          size: 28,
+        ),
       ),
     );
   }

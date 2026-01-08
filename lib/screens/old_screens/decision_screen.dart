@@ -3,10 +3,9 @@ import 'package:provider/provider.dart';
 import '../models/game_models.dart';
 import '../providers/game_provider.dart';
 import 'voting_results_screen.dart';
-import '../models/game_models.dart';
 
 class DecisionScreen extends StatelessWidget {
-  final Choice choice;
+  final GameChoice choice; 
 
   const DecisionScreen({
     Key? key,

@@ -17,7 +17,7 @@ class GameData {
           description: 
               'Vroeger hielp de gepensioneerde meester van de basisschool als burg tussen de jongeren en buurt, maar sinds zijn overlijden is dat contact verslechterd. Om wonenden durven de jongeren niet goed aan te spreken op hun gedrag. De gemeente neemt de wens van de jongeren serieus, maar wil eerst weten of er genoeg steun is vanuit de buurt.',
           type: CardType.intro,
-          imagePath: 'assets/images/skatepark_start.jpg',
+          imagePath: 'assets/images/skatepark_story.png',
         ),
         
         // Card 1A - Begin bij de jongeren
