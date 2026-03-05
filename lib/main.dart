@@ -8,7 +8,7 @@ import 'screens/host_share_screen.dart';
 import 'screens/join_pin_screen.dart';
 import 'screens/name_entry_screen.dart';
 import 'screens/lobby_screen.dart';
-//test
+//test2
 void main() {
   runApp(const SocialityApp());
 }
