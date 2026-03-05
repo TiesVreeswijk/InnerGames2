@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import '../providers/game_provider.dart';
+import '../../providers/game_provider.dart';
 import 'pin_share_screen.dart';
 
 class QRShareScreen extends StatelessWidget {

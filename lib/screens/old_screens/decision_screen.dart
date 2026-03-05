@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/game_models.dart';
-import '../providers/game_provider.dart';
+import '../../models/game_models.dart';
+import '../../providers/game_provider.dart';
 import 'voting_results_screen.dart';
 
 class DecisionScreen extends StatelessWidget {

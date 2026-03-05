@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/game_provider.dart';
+import '../../providers/game_provider.dart';
 import 'question_screen.dart';
 
 class VotingResultsScreen extends StatelessWidget {
@@ -110,9 +110,6 @@ class VotingResultsScreen extends StatelessWidget {
                             itemBuilder: (context, index) {
                               final choice = card.choices![index];
                               final votes = results[choice.id] ?? 0;
-                              final percentage = totalVotes > 0
-                                  ? (votes / totalVotes * 100).round()
-                                  : 0;
                               
                               // Determine color based on votes
                               Color buttonColor;

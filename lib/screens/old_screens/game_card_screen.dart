@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/game_models.dart';
-import '../providers/game_provider.dart';
+
+import '../../providers/game_provider.dart';
 import 'decision_screen.dart';
 
 class GameCardScreen extends StatefulWidget {
@@ -12,7 +12,6 @@ class GameCardScreen extends StatefulWidget {
 }
 
 class _GameCardScreenState extends State<GameCardScreen> {
-  int _currentImageIndex = 0;
   int _currentPage = 0;
   late PageController _pageController;
 
@@ -40,7 +39,7 @@ class _GameCardScreenState extends State<GameCardScreen> {
         }
 
         final bool hasImage = card.imagePath != null && card.imagePath!.isNotEmpty;
-        final bool hasMultiplePages = card.description != null;
+        final bool hasMultiplePages = card.description.isNotEmpty;
         return Scaffold(
           backgroundColor: const Color(0xFFD4A574),
           appBar: AppBar(
@@ -103,13 +102,13 @@ class _GameCardScreenState extends State<GameCardScreen> {
                                   ),
                                 
                                 // Card title/content overlay
-                                if (card.title != null && card.title!.isNotEmpty)
+                                if (card.title.isNotEmpty)
                                   Positioned(
                                     top: 24,
                                     left: 24,
                                     right: 24,
                                     child: Text(
-                                      card.title!,
+                                      card.title,
                                       style: const TextStyle(
                                         color: Color(0xFFE91E8C),
                                         fontSize: 28,
@@ -119,13 +118,13 @@ class _GameCardScreenState extends State<GameCardScreen> {
                                   ),
                                 
                                 // Description (if on a text page)
-                                if (!hasImage && card.description != null)
+                                if (!hasImage && card.description.isNotEmpty)
                                   Positioned.fill(
                                     child: Padding(
                                       padding: const EdgeInsets.all(24.0),
                                       child: Center(
                                         child: Text(
-                                          card.description!,
+                                          card.description,
                                           style: const TextStyle(
                                             fontSize: 18,
                                             height: 1.5,

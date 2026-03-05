@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/game_models.dart';
-import '../providers/game_provider.dart';
+import '../../models/game_models.dart';
+import '../../providers/game_provider.dart';
 import 'decision_screen.dart';
 
 /// Displays game cards - uses actual screen images from design

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/game_provider.dart';
+import '../../providers/game_provider.dart';
 import 'pin_share_screen.dart';
 import 'qr_share_screen.dart';
 import 'game_card_screen.dart';
