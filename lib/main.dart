@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:tweekracht_sociality/screens/home_screenV2.dart';
 
 // Import ONLY the screens we created that work
-import 'screens/welcome_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/welcome_screenV2.dart';
+import 'screens/home_screenV2.dart';
 import 'screens/host_name_entry_screen.dart';
 import 'screens/host_share_screen.dart';
 import 'screens/join_pin_screen.dart';
@@ -37,7 +38,7 @@ class SocialityApp extends StatelessWidget {
             
           case '/home':
             return MaterialPageRoute(
-              builder: (context) => const HomeScreen(),
+              builder: (context) => const HomeScreenv2(),
             );
             
           case '/host-name-entry':
