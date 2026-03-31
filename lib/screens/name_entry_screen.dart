@@ -68,9 +68,9 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5E6D3),
+      backgroundColor: const Color(0xF7F7F7),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.grey,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF2C3E7E)),
@@ -93,6 +93,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
               },
             ),
             const SizedBox(width: 12),
+            
             const Text(
               'Sociality',
               style: TextStyle(
@@ -110,7 +111,8 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
             image: DecorationImage(
               image: AssetImage('assets/images/logo.png'),
               fit: BoxFit.contain,
-              alignment: Alignment.center,
+              alignment: Alignment(0, -0.4),
+              opacity: 0.6,
             ),
           ),
           child: Padding(
@@ -120,17 +122,17 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Title
-                const Text(
-                  'Join session',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 0, 0, 0),
+                  const Text(
+                    'Join session',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 0, 0, 0),
+                    ),
                   ),
-                ),
                 
-                const SizedBox(height: 80),
+                const SizedBox(height: 63),
         
                 
                 // SIMPLE Name input - no fancy squares
@@ -150,7 +152,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
                       color: Colors.grey.shade400,
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: const Color(0xFFDBDBDB),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide.none,
