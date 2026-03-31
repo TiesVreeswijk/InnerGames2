@@ -28,7 +28,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Voer je naam in'),
+          content: Text('Enter your name'),
           backgroundColor: Colors.red,
         ),
       );
@@ -38,7 +38,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
     if (name.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Naam moet minimaal 2 tekens zijn'),
+          content: Text('The name must be at least 2 characters long'),
           backgroundColor: Colors.red,
         ),
       );
@@ -113,7 +113,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
             children: [
               // Title
               const Text(
-                'Wat is je naam?',
+                'What is your name?',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 32,
@@ -126,7 +126,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
               
               // Subtitle
               const Text(
-                'Voer je naam in om deel te nemen',
+                'Enter your name to join',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -147,7 +147,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
                   color: Color(0xFF2C3E7E),
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Je naam',
+                  hintText: 'Your name',
                   hintStyle: TextStyle(
                     fontSize: 24,
                     color: Colors.grey.shade400,
@@ -194,7 +194,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
                           ),
                         )
                       : const Text(
-                          'Doorgaan',
+                          'Continue',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -223,7 +223,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Deelnemen aan spel: ${widget.pin}',
+                      'Joining game: ${widget.pin}',
                       style: const TextStyle(
                         color: Color(0xFF2C3E7E),
                         fontSize: 14,
