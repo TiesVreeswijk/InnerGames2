@@ -60,7 +60,7 @@ class CreateJoinScreen extends StatelessWidget {
                           icon: Icons.add,
                           onPressed: () {
                             debugPrint('Join pressed');
-                            Navigator.pushNamed(context, '/join-game');
+                            Navigator.pushNamed(context, '/name-entry');
                           },
                         ),
                       ],

@@ -113,34 +113,9 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
             children: [
               const SizedBox(height: 40),
               
-              // Host icon
-              Center(
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  margin: const EdgeInsets.only(bottom: 24),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE91E63),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.emoji_events,
-                    size: 40,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              
               // Title
               const Text(
-                'What is your name?',
+                'Create a new session',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 32,
@@ -150,18 +125,6 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
               ),
               
               const SizedBox(height: 16),
-              
-              // Subtitle
-              const Text(
-                'You are the host of this game',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black54,
-                ),
-              ),
-              
-              const SizedBox(height: 48),
               
               // SIMPLE Name input
               TextField(
@@ -194,42 +157,7 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
                 textCapitalization: TextCapitalization.words,
                 onSubmitted: (_) => _createGame(),
               ),
-              
-              const SizedBox(height: 24),
-              
-              // Create game button
-              SizedBox(
-                height: 60,
-                child: ElevatedButton(
-                  onPressed: _isCreating ? null : _createGame,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE91E63),
-                    disabledBackgroundColor: Colors.grey.shade300,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    elevation: 4,
-                  ),
-                  child: _isCreating
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text(
-                            'Create Game',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                ),
-              ),
-              
+          
               const SizedBox(height: 100), // Extra space for keyboard
             ],
           ),
