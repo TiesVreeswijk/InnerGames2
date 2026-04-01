@@ -1,29 +1,55 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Named button style — use this directly on any button with: style: AppTheme.primaryButton
+  // Colors
+  static const Color primaryMagenta = Color(0xFFE4007D);
+  static const Color lightGreyBg = Color(0xFFE0E0E0);
+
+  // Button Style
   static final ButtonStyle primaryButton = FilledButton.styleFrom(
     minimumSize: const Size(220, 56),
     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
     textStyle: const TextStyle(
       fontSize: 20,
       fontWeight: FontWeight.w600,
     ),
-    backgroundColor: Color.fromARGB(255, 228, 0, 125),
+    backgroundColor: primaryMagenta,
+  );
+
+  // Custom Decoration for the Bottom Container
+  static const BoxDecoration bottomSheetDecoration = BoxDecoration(
+    color: lightGreyBg,
+    borderRadius: BorderRadius.only(
+      topLeft: Radius.circular(32),
+      topRight: Radius.circular(32),
+    ),
+  );
+
+  // Text Styles
+  static const TextStyle welcomeTitle = TextStyle(
+    fontSize: 28,
+    fontWeight: FontWeight.bold,
+    color: Colors.black,
+  );
+
+  static const TextStyle welcomeBody = TextStyle(
+    fontSize: 18,
+    color: Colors.black87,
+    height: 1.4, // Improves readability
   );
 
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
-
-    colorScheme: ColorScheme.fromSeed( // blank white background
-      seedColor: const Color.fromARGB(255, 255, 255, 255),
+    scaffoldBackgroundColor: Colors.white,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: primaryMagenta,
+      surface: lightGreyBg,
     ),
-
-    // // Fallback theme-wide button style (disabled for now so I don't accidentally override specific button styles from classmates)
-    // filledButtonTheme: FilledButtonThemeData(
-    //   style: primaryButton,
-    // ),
-
-
+    // You can also define global text themes here
+    textTheme: const TextTheme(
+      displayMedium: welcomeTitle,
+      bodyLarge: welcomeBody,
+    ),
   );
 }

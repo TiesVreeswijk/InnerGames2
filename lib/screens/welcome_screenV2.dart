@@ -1,60 +1,69 @@
 import 'package:flutter/material.dart';
 import '../theme/app_themeRyan.dart';
 
-
 class WelcomeScreenv2 extends StatelessWidget {
   const WelcomeScreenv2({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Theme(
-      // Temporary local theme usage for this screen only.
-      // This should be moved to MaterialApp(theme: ...) in main.dart later.
-      data: AppTheme.lightTheme, // Using the custom theme we defined in app_themeRyan.dart
+      data: AppTheme.lightTheme,
       child: Scaffold(
-        body: SafeArea(
-          child: Column(
-            children: [
-              const Spacer(),
-
-              Image.asset('assets/images/logo.png', width: 200),
-
-              const SizedBox(height: 40),
-
-              Container(
-                margin: const EdgeInsets.all(24),
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  // color: RyanTheme.lightBackgroundColor,
-                  borderRadius: BorderRadius.circular(24),
+        // Scaffold background color is now handled by the theme
+        body: Column(
+          children: [
+            // 1. Top Section
+            Expanded(
+              flex: 4,
+              child: Center(
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  width: 250,
                 ),
+              ),
+            ),
+
+            // 2. Bottom Section
+            Expanded(
+              flex: 4, // 10/10 flex is entire screen, so 4/10 for bottom section
+              child: Container(
+                width: double.infinity,
+                decoration: AppTheme.bottomSheetDecoration, // Themed Decoration
+                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
                 child: Column(
                   children: [
                     const Text(
                       'Welkom!',
+                      style: AppTheme.welcomeTitle, // Themed Style
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 24),
                     const Text(
                       'Verken sociale werksituaties en ontdek wat je kunt doen.',
                       textAlign: TextAlign.center,
+                      style: AppTheme.welcomeBody, // Themed Style
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 30),
+                    
+                    FilledButton.icon(
+                      onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
+                      style: AppTheme.primaryButton,
+                      icon: const Icon(Icons.play_arrow),
+                      label: const Text('Volgende'),
+                    ),
 
-                    FilledButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/home');
-                      },
-                      child: const Text('Volgende'),
-                    )
+                    const Spacer(),
+
+                    Image.asset(
+                      'assets/images/innergames logo.png',
+                      width: 50,
+                    ),
                   ],
                 ),
               ),
-
-              const Spacer(),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
-  }
+}
