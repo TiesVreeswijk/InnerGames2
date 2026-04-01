@@ -8,6 +8,9 @@ import 'screens/host_share_screen.dart';
 import 'screens/join_pin_screen.dart';
 import 'screens/name_entry_screen.dart';
 import 'screens/lobby_screen.dart';
+import 'screens/create_join_screen.dart';
+import 'screens/share_game_screen.dart';
+import 'screens/story_screen.dart';
 //test2
 void main() {
   runApp(const SocialityApp());
@@ -65,7 +68,17 @@ class SocialityApp extends StatelessWidget {
             return MaterialPageRoute(
               builder: (context) => const JoinPinScreen(),
             );
-            
+
+          case '/create-join':
+            return MaterialPageRoute(
+              builder: (context) => const CreateJoinScreen(),
+            );
+
+          case '/share-game':
+            return MaterialPageRoute(
+              builder: (context) => const ShareGameScreen(),
+            );
+
           case '/name-entry':
             final args = settings.arguments as Map<String, dynamic>?;
             return MaterialPageRoute(
@@ -119,8 +132,17 @@ class SocialityApp extends StatelessWidget {
               ),
             );
             
+          case '/story':
+            return MaterialPageRoute(
+              builder: (context) => const StoryScreen(),
+            );
+
           case '/game':
-            // Placeholder for game screen
+            return MaterialPageRoute(
+              builder: (context) => const StoryScreen(),
+            );
+
+          case '/game-placeholder':
             return MaterialPageRoute(
               builder: (context) => Scaffold(
                 backgroundColor: const Color(0xFFD89B6A),
