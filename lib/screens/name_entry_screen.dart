@@ -28,7 +28,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Voer je naam in'),
+          content: Text('Enter your name'),
           backgroundColor: Colors.red,
         ),
       );
@@ -38,7 +38,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
     if (name.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Naam moet minimaal 2 tekens zijn'),
+          content: Text('The name must be at least 2 characters long'),
           backgroundColor: Colors.red,
         ),
       );
@@ -68,9 +68,9 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5E6D3),
+      backgroundColor: const Color(0xF7F7F7F7),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xDBDBDBDB),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF2C3E7E)),
@@ -93,6 +93,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
               },
             ),
             const SizedBox(width: 12),
+            
             const Text(
               'Sociality',
               style: TextStyle(
@@ -105,82 +106,50 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
         ),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Title
-              const Text(
-                'Wat is je naam?',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C3E7E),
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Subtitle
-              const Text(
-                'Voer je naam in om deel te nemen',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black54,
-                ),
-              ),
-              
-              const SizedBox(height: 48),
-              
-              // SIMPLE Name input - no fancy squares
-              TextField(
-                controller: _nameController,
-                autofocus: true,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF2C3E7E),
-                ),
-                decoration: InputDecoration(
-                  hintText: 'Je naam',
-                  hintStyle: TextStyle(
-                    fontSize: 24,
-                    color: Colors.grey.shade400,
+        child: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/images/logo.png'),
+              fit: BoxFit.contain,
+              alignment: Alignment(0, -0.4),
+              opacity: 0.5,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 70, 24, 24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Title
+                  const Text(
+                    'Join session',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 0, 0, 0),
+                    ),
                   ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
+                
+                const SizedBox(height: 93),
+        
+                
+                // SIMPLE Name input - no fancy squares
+                TextField(
+                  controller: _nameController,
+                  autofocus: true,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 45,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF2C3E7E),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 20,
-                    horizontal: 24,
-                  ),
-                  counterText: '', // Hide character counter
-                ),
-                maxLength: 20,
-                textCapitalization: TextCapitalization.words,
-                onSubmitted: (_) => _continue(),
-              ),
-              
-              const SizedBox(height: 24),
-              
-              // Continue button
-              SizedBox(
-                height: 60,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _continue,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE91E63),
-                    disabledBackgroundColor: Colors.grey.shade300,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                  decoration: InputDecoration(
+                    hintText: 'Name',
+                    hintStyle: TextStyle(
+                      fontSize: 45,
+                      color: Colors.grey.shade400,
                     ),
                     elevation: 4,
                   ),
@@ -221,21 +190,22 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
                       color: Color(0xFF2C3E7E),
                       size: 20,
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Deelnemen aan spel: ${widget.pin}',
-                      style: const TextStyle(
-                        color: Color(0xFF2C3E7E),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 35,
+                      horizontal: 24,
                     ),
-                  ],
+                    counterText: '', // Hide character counter
+                  ),
+                  maxLength: 20,
+                  textCapitalization: TextCapitalization.words,
+                  onSubmitted: (_) => _continue(),
                 ),
-              ),
-            ],
+                
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
-        ),
+        )
       ),
     );
   }
