@@ -68,9 +68,9 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xF7F7F7),
+      backgroundColor: const Color(0xF7F7F7F7),
       appBar: AppBar(
-        backgroundColor: Colors.grey,
+        backgroundColor: const Color(0xDBDBDBDB),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF2C3E7E)),
@@ -112,11 +112,11 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
               image: AssetImage('assets/images/logo.png'),
               fit: BoxFit.contain,
               alignment: Alignment(0, -0.4),
-              opacity: 0.6,
+              opacity: 0.5,
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 100, 24, 24),
+            padding: const EdgeInsets.fromLTRB(24, 70, 24, 24),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -132,7 +132,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
                     ),
                   ),
                 
-                const SizedBox(height: 63),
+                const SizedBox(height: 93),
         
                 
                 // SIMPLE Name input - no fancy squares
