@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/name_input.dart';
 
 class NameEntryScreen extends StatefulWidget {
   final String pin;
