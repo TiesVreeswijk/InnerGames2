@@ -35,6 +35,7 @@ class HomeScreenv2 extends StatelessWidget {
                   onPressed: () {},
                   icon: const Icon(Icons.qr_code_scanner),
                   label: const Text('Scan'),
+                  style: AppTheme.primaryButton,
                 ),
                 const SizedBox(height: 16),
 
@@ -42,7 +43,13 @@ class HomeScreenv2 extends StatelessWidget {
                   onPressed: () {},
                   icon: const Icon(Icons.settings),
                   label: const Text('Settings'),
+                  style: AppTheme.primaryButton,
                 ),
+                const SizedBox(height: 16),
+
+                
+
+                
               ],
             ),
           ],
