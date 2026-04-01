@@ -570,7 +570,7 @@ class HomeScreen extends StatelessWidget {
     // Navigate to host name entry screen via route
     Navigator.pushNamed(
       context,
-      '/host-name-entry',
+      '/create-join',
       arguments: {
         'storyTitle': storyTitle,
       },
