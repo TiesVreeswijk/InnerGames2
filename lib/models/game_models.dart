@@ -1,4 +1,5 @@
 // Game Story Model
+// TODO: align field names with the other group's database schema
 class GameStory {
   final String id;
   final String title;

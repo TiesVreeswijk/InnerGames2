@@ -194,7 +194,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
                           ),
                         )
                       : const Text(
-                          'Doorgaan',
+                          'Start spel',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
