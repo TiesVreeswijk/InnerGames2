@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../theme/app_themeRyan.dart';
 
 
-class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({super.key});
+class WelcomeScreenv2 extends StatelessWidget {
+  const WelcomeScreenv2({super.key});
 
   @override
   Widget build(BuildContext context) {

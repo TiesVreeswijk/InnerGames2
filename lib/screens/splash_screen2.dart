@@ -26,7 +26,14 @@ class _SplashScreen2State extends State<SplashScreen2> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Text("Second Splash Screen"),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/images/innergames logo.png', width: 200),
+            Image.asset('assets/images/han logo.png', width: 200),
+            Image.asset('assets/images/fontys logo.png', width: 200),
+          ],
+        ),
       ),
     );
   }
