@@ -180,8 +180,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: widget.isHost
-          ? Container(
+      bottomNavigationBar: Container(
               padding: const EdgeInsets.all(16),
               decoration: const BoxDecoration(
                 color: Color(0xFFD89B6A),
@@ -218,8 +217,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
                   ),
                 ),
               ),
-            )
-          : null,
+            ),
     );
   }
 
