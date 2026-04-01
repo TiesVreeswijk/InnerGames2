@@ -14,7 +14,6 @@ class HostNameEntryScreen extends StatefulWidget {
 
 class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
   final TextEditingController _nameController = TextEditingController();
-  bool _isCreating = false;
 
   @override
   void dispose() {
@@ -45,10 +44,6 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
       return;
     }
 
-    setState(() {
-      _isCreating = true;
-    });
-
     await Future.delayed(const Duration(milliseconds: 500));
     final pin = '1234';
 
@@ -68,10 +63,10 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5E6D3),
+      backgroundColor: const Color(0xF7F7F7F7),
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xDBDBDBDB),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF2C3E7E)),
@@ -105,60 +100,67 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
           ],
         ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 40),
-              
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/logo.png'),
+            fit: BoxFit.contain,
+            alignment: Alignment(0, -0.4),
+            opacity: 0.5,
+          ),
+        ),
+        child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 70, 24, 24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
               // Title
               const Text(
                 'Create a new session',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 32,
+                  fontSize: 36,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C3E7E),
+                  color: Color.fromARGB(255, 0, 0, 0),
                 ),
               ),
               
-              const SizedBox(height: 16),
-              
-              // SIMPLE Name input
-              TextField(
-                controller: _nameController,
-                autofocus: true,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF2C3E7E),
+              const SizedBox(height: 93),
+
+            // SIMPLE Name input - no fancy squares
+                TextField(
+                  controller: _nameController,
+                  autofocus: true,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 45,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF2C3E7E),
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Name',
+                    hintStyle: TextStyle(
+                      fontSize: 45,
+                      color: Colors.grey.shade400,
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFDBDBDB),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 35,
+                      horizontal: 24,
+                    ),
+                    counterText: '',
+                  ),
+                  maxLength: 20,
+                  textCapitalization: TextCapitalization.words,
+                  onSubmitted: (_) => _createGame(),
                 ),
-                decoration: InputDecoration(
-                  hintText: 'Your name',
-                  hintStyle: TextStyle(
-                    fontSize: 24,
-                    color: Colors.grey.shade400,
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 20,
-                    horizontal: 24,
-                  ),
-                ),
-                maxLength: 20,
-                textCapitalization: TextCapitalization.words,
-                onSubmitted: (_) => _createGame(),
-              ),
-          
-              const SizedBox(height: 100), // Extra space for keyboard
+                const SizedBox(height: 24),
             ],
           ),
         ),
