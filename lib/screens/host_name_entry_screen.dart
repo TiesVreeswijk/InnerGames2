@@ -28,7 +28,7 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Voer je naam in'),
+          content: Text('Enter your name'),
           backgroundColor: Colors.red,
         ),
       );
@@ -38,7 +38,7 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
     if (name.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Naam moet minimaal 2 tekens zijn'),
+          content: Text('The name must be at least 2 characters long'),
           backgroundColor: Colors.red,
         ),
       );
@@ -140,7 +140,7 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
               
               // Title
               const Text(
-                'Wat is je naam?',
+                'What is your name?',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 32,
@@ -153,7 +153,7 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
               
               // Subtitle
               const Text(
-                'Je bent de host van dit spel',
+                'You are the host of this game',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -174,7 +174,7 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
                   color: Color(0xFF2C3E7E),
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Je naam',
+                  hintText: 'Your name',
                   hintStyle: TextStyle(
                     fontSize: 24,
                     color: Colors.grey.shade400,
@@ -220,7 +220,7 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
                           ),
                         )
                       : const Text(
-                            'Spel aanmaken',
+                            'Create Game',
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,

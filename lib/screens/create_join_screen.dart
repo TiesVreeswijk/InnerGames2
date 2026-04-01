@@ -51,7 +51,7 @@ class CreateJoinScreen extends StatelessWidget {
                           icon: Icons.link,
                           onPressed: () {
                             debugPrint('Create pressed');
-                            Navigator.pushNamed(context, '/share-game');
+                            Navigator.pushNamed(context, '/host-name-entry');
                           },
                         ),
                         const SizedBox(height: 56),
@@ -60,6 +60,7 @@ class CreateJoinScreen extends StatelessWidget {
                           icon: Icons.add,
                           onPressed: () {
                             debugPrint('Join pressed');
+                            Navigator.pushNamed(context, '/join-game');
                           },
                         ),
                       ],
