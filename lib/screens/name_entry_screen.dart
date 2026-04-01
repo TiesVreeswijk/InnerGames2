@@ -14,7 +14,6 @@ class NameEntryScreen extends StatefulWidget {
 
 class _NameEntryScreenState extends State<NameEntryScreen> {
   final TextEditingController _nameController = TextEditingController();
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -44,10 +43,6 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
       );
       return;
     }
-
-    setState(() {
-      _isLoading = true;
-    });
 
     print('Player joining with name: $name, PIN: ${widget.pin}');
 
@@ -151,61 +146,26 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
                       fontSize: 45,
                       color: Colors.grey.shade400,
                     ),
-                    elevation: 4,
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text(
-                          'Start spel',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                ),
-              ),
-              
-              const SizedBox(height: 24),
-              
-              // PIN info
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2C3E7E).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.info_outline,
-                      color: Color(0xFF2C3E7E),
-                      size: 20,
+                    filled: true,
+                    fillColor: const Color(0xFFDBDBDB),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
                     ),
                     contentPadding: const EdgeInsets.symmetric(
                       vertical: 35,
                       horizontal: 24,
                     ),
-                    counterText: '', // Hide character counter
+                    counterText: '',
                   ),
                   maxLength: 20,
                   textCapitalization: TextCapitalization.words,
                   onSubmitted: (_) => _continue(),
                 ),
-                
-                const SizedBox(height: 24),
               ],
             ),
           ),
-        )
+        ),
       ),
     );
   }
