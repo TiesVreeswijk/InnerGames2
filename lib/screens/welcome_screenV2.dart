@@ -25,11 +25,13 @@ class WelcomeScreenv2 extends StatelessWidget {
 
             // 2. Bottom Section
             Expanded(
-              flex: 4, // 10/10 flex is entire screen, so 4/10 for bottom section
+              flex:
+                  4, // 10/10 flex is entire screen, so 4/10 for bottom section
               child: Container(
                 width: double.infinity,
                 decoration: AppTheme.bottomSheetDecoration, // Themed Decoration
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
                 child: Column(
                   children: [
                     const Text(
@@ -43,16 +45,17 @@ class WelcomeScreenv2 extends StatelessWidget {
                       style: AppTheme.welcomeBody, // Themed Style
                     ),
                     const SizedBox(height: 30),
-                    
                     FilledButton.icon(
-                      onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
+                      onPressed: () => Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/home',
+                        (route) => false,
+                      ),
                       style: AppTheme.primaryButton,
                       icon: const Icon(Icons.play_arrow),
                       label: const Text('Volgende'),
                     ),
-
                     const Spacer(),
-
                     Image.asset(
                       'assets/images/innergames logo.png',
                       width: 50,
