@@ -5,7 +5,7 @@ import 'screens/host_name_entry_screen.dart';
 import 'screens/host_share_screen.dart';
 import 'screens/join_pin_screen.dart';
 import 'screens/name_entry_screen.dart';
-import 'screens/lobby_screen.dart';
+import 'screens/lobby_host_screen.dart';
 import 'screens/create_join_screen.dart';
 import 'screens/share_game_screen.dart';
 import 'screens/story_screen.dart';
