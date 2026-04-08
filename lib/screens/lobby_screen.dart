@@ -194,7 +194,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
                   child: ElevatedButton(
                     onPressed: _players.isEmpty ? null : _startGame,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFE91E63),
+                      backgroundColor: const Color(0xFFE4007D),
                       disabledBackgroundColor: Colors.grey.shade300,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(28),
@@ -272,6 +272,8 @@ class _LobbyScreenState extends State<LobbyScreen> {
       itemBuilder: (context, index) {
         final isHost = widget.isHost && index == 0;
         final avatarAssetPath = _avatarAssetForPlayer(index);
+        final playerBoxColor =
+            isHost ? const Color(0xFFF18F02) : const Color(0xFFE4007D);
 
         return Stack(
           clipBehavior: Clip.none,
@@ -282,7 +284,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
                 height: 48,
                 padding: const EdgeInsets.only(left: 34, right: 18),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE91E63),
+                  color: playerBoxColor,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
@@ -337,20 +339,6 @@ class _LobbyScreenState extends State<LobbyScreen> {
                       ),
                     ),
                   ),
-                  if (isHost)
-                    const Positioned(
-                      right: -2,
-                      bottom: -2,
-                      child: CircleAvatar(
-                        radius: 8,
-                        backgroundColor: Colors.white,
-                        child: Icon(
-                          Icons.emoji_events,
-                          size: 10,
-                          color: Color(0xFFE91E63),
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
@@ -390,7 +378,7 @@ class _LobbyScreenTestApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: const LobbyScreen(
-        isHost: false,
+        isHost: true,
         gameTitle: 'HET SKATEPARK',
         players: ['Tobias', 'Jean Pierre', 'Lucas', 'Bob', 'Yannick', 'Quan del Dingel'],
       ),
