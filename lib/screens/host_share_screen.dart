@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/custom_app_bar.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class HostShareScreen extends StatefulWidget {
@@ -38,40 +39,8 @@ class _HostShareScreenState extends State<HostShareScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5E6D3),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: Row(
-          children: [
-            // Logo
-            Image.asset(
-              'assets/images/logo.png',
-              height: 40,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE91E63),
-                    shape: BoxShape.circle,
-                  ),
-                );
-              },
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              'Sociality',
-              style: TextStyle(
-                color: Color(0xFF2C3E7E),
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
+      backgroundColor: const Color(0xFFF7F7F7),
+      appBar: const CustomAppBar(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -168,7 +137,7 @@ class _HostShareScreenState extends State<HostShareScreen> {
                         decoration: BoxDecoration(
                           color: _showingPinCode
                               ? const Color(0xFFE91E63)
-                              : const Color(0xFFE8D5C4),
+                              : const Color(0xFFE8E8E8),
                           borderRadius: BorderRadius.circular(25),
                         ),
                         alignment: Alignment.center,
@@ -198,7 +167,7 @@ class _HostShareScreenState extends State<HostShareScreen> {
                         decoration: BoxDecoration(
                           color: !_showingPinCode
                               ? const Color(0xFFE91E63)
-                              : const Color(0xFFE8D5C4),
+                              : const Color(0xFFE8E8E8),
                           borderRadius: BorderRadius.circular(25),
                         ),
                         alignment: Alignment.center,
@@ -233,10 +202,10 @@ class _HostShareScreenState extends State<HostShareScreen> {
         // Large PIN display
         Text(
           widget.pin,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 96,
             fontWeight: FontWeight.w300,
-            color: Colors.grey.shade400,
+            color: Color(0xFFFF9800),
             letterSpacing: 20,
           ),
         ),

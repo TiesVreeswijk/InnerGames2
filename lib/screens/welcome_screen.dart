@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
+import 'Choosing_story.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
@@ -63,7 +63,7 @@ class WelcomeScreen extends StatelessWidget {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const HomeScreen(),
+                                builder: (context) => const ChoosingStoryScreen(),
                               ),
                             );
                           },
