@@ -89,7 +89,7 @@ class _HostShareScreenState extends State<ShareGameScreen> {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: () {
-                    debugPrint('Start Spel clicked');
+                    Navigator.pushNamed(context, '/story');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF263A96),

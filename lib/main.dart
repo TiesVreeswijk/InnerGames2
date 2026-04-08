@@ -11,12 +11,7 @@ import 'screens/lobby_screen.dart';
 import 'screens/create_join_screen.dart';
 import 'screens/share_game_screen.dart';
 import 'screens/story_screen.dart';
-
-// V2 imports Ryan
-import 'screens/splash_screen.dart';
-import 'screens/splash_screen2.dart';
-import 'screens/welcome_screenV2.dart';
-import 'screens/home_screenV2.dart';
+import 'screens/avatar_selection_screen.dart';
 //test2
 void main() {
   runApp(const SocialityApp());
@@ -156,6 +151,12 @@ class SocialityApp extends StatelessWidget {
           case '/story':
             return MaterialPageRoute(
               builder: (context) => const StoryScreen(),
+            );
+
+          case '/avatar-selection':
+            final args = settings.arguments as Map<String, dynamic>?;
+            return MaterialPageRoute(
+              builder: (context) => AvatarSelectionScreen(userData: args),
             );
 
           case '/game':
