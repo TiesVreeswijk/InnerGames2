@@ -313,3 +313,23 @@ class _LobbyScreenState extends State<LobbyScreen> {
     );
   }
 }
+
+// Test runner - allows running this file directly
+void main() {
+  runApp(const _LobbyScreenTestApp());
+}
+
+class _LobbyScreenTestApp extends StatelessWidget {
+  const _LobbyScreenTestApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: const LobbyScreen(
+        isHost: false,
+        gameTitle: 'HET SKATEPARK',
+        players: ['Alice', 'Bob', 'Charlie'],
+      ),
+    );
+  }
+}

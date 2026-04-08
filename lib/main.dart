@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
 // Import ONLY the screens we created that work
-import 'screens/welcome_screen.dart';
-import 'screens/home_screen.dart';
 import 'screens/host_name_entry_screen.dart';
 import 'screens/host_share_screen.dart';
 import 'screens/join_pin_screen.dart';
@@ -34,14 +32,17 @@ class SocialityApp extends StatelessWidget {
         primarySwatch: Colors.pink,
         fontFamily: 'SF Pro Text',
       ),
-      initialRoute: '/splash',
+      initialRoute: '/',
       onGenerateRoute: (settings) {
         print('🔄 Navigating to: ${settings.name}');
         
         switch (settings.name) {
           case '/':
             return MaterialPageRoute(
-              builder: (context) => const HomeScreenv2(),
+              builder: (context) => const LobbyScreen(
+                isHost: false,
+                gameTitle: 'HET SKATEPARK',
+              ),
             );
 
           case '/splash':
