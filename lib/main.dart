@@ -29,19 +29,34 @@ class SocialityApp extends StatelessWidget {
         primarySwatch: Colors.pink,
         fontFamily: 'SF Pro Text',
       ),
-      initialRoute: '/',
+      initialRoute: '/splash',
       onGenerateRoute: (settings) {
         print('🔄 Navigating to: ${settings.name}');
         
         switch (settings.name) {
           case '/':
             return MaterialPageRoute(
-              builder: (context) => const WelcomeScreen(),
+              builder: (context) => const HomeScreenv2(),
             );
-            
+
+          case '/splash':
+            return MaterialPageRoute(
+              builder: (context) => const SplashScreen(),
+            );
+
+          case '/splash2':
+            return MaterialPageRoute(
+              builder: (context) => const SplashScreen2(),
+            );
+
+          case '/welcome':
+            return MaterialPageRoute(
+              builder: (context) => const WelcomeScreenv2(),
+            );
+
           case '/home':
             return MaterialPageRoute(
-              builder: (context) => const HomeScreen(),
+              builder: (context) => const HomeScreenv2(),
             );
             
           case '/host-name-entry':

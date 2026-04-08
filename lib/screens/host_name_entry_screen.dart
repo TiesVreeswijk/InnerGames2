@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/name_input.dart';
 
 class HostNameEntryScreen extends StatefulWidget {
   final String storyTitle;
@@ -14,7 +15,6 @@ class HostNameEntryScreen extends StatefulWidget {
 
 class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
   final TextEditingController _nameController = TextEditingController();
-  bool _isCreating = false;
 
   @override
   void dispose() {
@@ -28,7 +28,7 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Voer je naam in'),
+          content: Text('Enter your name'),
           backgroundColor: Colors.red,
         ),
       );
@@ -38,16 +38,12 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
     if (name.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Naam moet minimaal 2 tekens zijn'),
+          content: Text('The name must be at least 2 characters long'),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
-
-    setState(() {
-      _isCreating = true;
-    });
 
     await Future.delayed(const Duration(milliseconds: 500));
     final pin = '1234';
@@ -68,10 +64,10 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5E6D3),
+      backgroundColor: const Color(0xF7F7F7F7),
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xDBDBDBDB),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF2C3E7E)),
@@ -106,133 +102,10 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 40),
-              
-              // Host icon
-              Center(
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  margin: const EdgeInsets.only(bottom: 24),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE91E63),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.emoji_events,
-                    size: 40,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              
-              // Title
-              const Text(
-                'Wat is je naam?',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C3E7E),
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Subtitle
-              const Text(
-                'Je bent de host van dit spel',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black54,
-                ),
-              ),
-              
-              const SizedBox(height: 48),
-              
-              // SIMPLE Name input
-              TextField(
-                controller: _nameController,
-                autofocus: true,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF2C3E7E),
-                ),
-                decoration: InputDecoration(
-                  hintText: 'Je naam',
-                  hintStyle: TextStyle(
-                    fontSize: 24,
-                    color: Colors.grey.shade400,
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 20,
-                    horizontal: 24,
-                  ),
-                ),
-                maxLength: 20,
-                textCapitalization: TextCapitalization.words,
-                onSubmitted: (_) => _createGame(),
-              ),
-              
-              const SizedBox(height: 24),
-              
-              // Create game button
-              SizedBox(
-                height: 60,
-                child: ElevatedButton(
-                  onPressed: _isCreating ? null : _createGame,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE91E63),
-                    disabledBackgroundColor: Colors.grey.shade300,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    elevation: 4,
-                  ),
-                  child: _isCreating
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text(
-                            'Spel aanmaken',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                ),
-              ),
-              
-              const SizedBox(height: 100), // Extra space for keyboard
-            ],
-          ),
+        child: NameInputWidget(
+          title: 'Create a new session',
+          controller: _nameController,
+          onSubmitted: _createGame,
         ),
       ),
     );
