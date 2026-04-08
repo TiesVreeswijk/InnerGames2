@@ -38,7 +38,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
     if (_players.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Wacht tot spelers deelnemen'),
+          content: Text('wait until at least 1 player has joined'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -52,9 +52,9 @@ class _LobbyScreenState extends State<LobbyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFD89B6A),
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor:const Color.fromARGB(255, 219, 219, 219),
         elevation: 0,
         automaticallyImplyLeading: false,
         title: Row(
@@ -90,7 +90,8 @@ class _LobbyScreenState extends State<LobbyScreen> {
           children: [
             // Game title card
             Container(
-              margin: const EdgeInsets.all(16),
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: 20,vertical: 16),
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: const Color(0xFF2C3E7E),
@@ -149,9 +150,9 @@ class _LobbyScreenState extends State<LobbyScreen> {
               ),
             ),
 
-            // Deelnemers header
+            // Players header
             Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
+              margin: const EdgeInsets.symmetric(horizontal: 80),
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
               decoration: BoxDecoration(
                 color: const Color(0xFF2C3E7E),
@@ -159,10 +160,10 @@ class _LobbyScreenState extends State<LobbyScreen> {
               ),
               child: const Center(
                 child: Text(
-                  'Deelnemers',
+                  'Players',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 23,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -183,7 +184,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
       bottomNavigationBar: Container(
               padding: const EdgeInsets.all(16),
               decoration: const BoxDecoration(
-                color: Color(0xFFD89B6A),
+                color: Colors.white
               ),
               child: SafeArea(
                 top: false,
@@ -234,8 +235,8 @@ class _LobbyScreenState extends State<LobbyScreen> {
           const SizedBox(height: 16),
           Text(
             widget.isHost
-                ? 'Wacht op spelers...'
-                : 'Verbinding maken...',
+                ? 'Wait for players to join...'
+                : 'Connecting...',
             style: TextStyle(
               fontSize: 20,
               color: Colors.white.withOpacity(0.7),
@@ -245,8 +246,8 @@ class _LobbyScreenState extends State<LobbyScreen> {
           const SizedBox(height: 8),
           Text(
             widget.isHost
-                ? 'Deel de PIN met anderen'
-                : 'Je komt zo in de lobby',
+                ? 'Share the PIN with others'
+                : 'You will join the lobby shortly',
             style: TextStyle(
               fontSize: 14,
               color: Colors.white.withOpacity(0.5),
@@ -328,7 +329,7 @@ class _LobbyScreenTestApp extends StatelessWidget {
       home: const LobbyScreen(
         isHost: false,
         gameTitle: 'HET SKATEPARK',
-        players: ['Alice', 'Bob', 'Charlie'],
+        players: ['Tobias', 'Jean Pierre', 'Lucas', 'Bob', 'Yannick', 'Quan del Dingel'],
       ),
     );
   }
