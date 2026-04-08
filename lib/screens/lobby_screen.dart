@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/custom_app_bar.dart';
 
 class LobbyScreen extends StatefulWidget {
   final bool isHost;
@@ -52,39 +53,8 @@ class _LobbyScreenState extends State<LobbyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFD89B6A),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: Row(
-          children: [
-            Image.asset(
-              'assets/images/logo.png',
-              height: 40,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  width: 40,
-                  height: 40,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFE91E63),
-                    shape: BoxShape.circle,
-                  ),
-                );
-              },
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              'Sociality',
-              style: TextStyle(
-                color: Color(0xFF2C3E7E),
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
+      backgroundColor: const Color(0xFFF7F7F7),
+      appBar: const CustomAppBar(),
       body: SafeArea(
         child: Column(
           children: [

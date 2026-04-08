@@ -17,7 +17,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF7F7F7),
       appBar: const CustomAppBar(),
       body: SafeArea(
         child: Stack(
@@ -50,17 +50,36 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                       height: 56,
                       child: ElevatedButton(
                         onPressed: () {
-                          // Navigate to story screen with all user data
-                          Navigator.pushReplacementNamed(
-                            context,
-                            '/story',
-                            arguments: {
-                              'playerName': widget.userData?['playerName'],
-                              'pin': widget.userData?['pin'],
-                              'gameTitle': widget.userData?['gameTitle'],
-                              'selectedAvatar': selectedAvatarIndex,
-                            },
-                          );
+                          // Check if user is host to determine navigation
+                          bool isHost = widget.userData?['isHost'] == true;
+                          
+                          if (isHost) {
+                            // Navigate to ChoosingStories screen for host
+                            Navigator.pushReplacementNamed(
+                              context,
+                              '/ChoosingStories',
+                              arguments: {
+                                'isHost': true,
+                                'gameTitle': widget.userData?['storyTitle'] ?? widget.userData?['gameTitle'] ?? 'HET SKATEPARK',
+                                'players': [widget.userData?['hostName'] ?? widget.userData?['playerName'] ?? 'Host'],
+                                'hostName': widget.userData?['hostName'] ?? widget.userData?['playerName'],
+                                'selectedAvatar': selectedAvatarIndex,
+                                'pin': widget.userData?['pin'],
+                              },
+                            );
+                          } else {
+                            // Navigate to ChoosingStories screen for regular players
+                            Navigator.pushReplacementNamed(
+                              context,
+                              '/join-pin',
+                              arguments: {
+                                'playerName': widget.userData?['playerName'],
+                                'pin': widget.userData?['pin'],
+                                'gameTitle': widget.userData?['gameTitle'],
+                                'selectedAvatar': selectedAvatarIndex,
+                              },
+                            );
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFE4007D),
