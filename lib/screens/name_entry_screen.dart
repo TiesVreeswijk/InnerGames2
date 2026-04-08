@@ -46,16 +46,14 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
 
     print('Player joining with name: $name, PIN: ${widget.pin}');
 
-    // Navigate to lobby
+    // Navigate to avatar selection
     Navigator.pushReplacementNamed(
       context,
-      '/lobby',
+      '/avatar-selection',
       arguments: {
-        'isHost': false,
-        'gameTitle': 'HET SKATEPARK',
-        'players': [name],
         'playerName': name,
         'pin': widget.pin,
+        'gameTitle': 'HET SKATEPARK',
       },
     );
   }
