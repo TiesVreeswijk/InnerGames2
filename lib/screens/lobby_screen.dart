@@ -67,7 +67,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
                   width: 40,
                   height: 40,
                   decoration: const BoxDecoration(
-                    color: Color(0xFFE91E63),
+                    color: Color(0xFFE4007D),
                     shape: BoxShape.circle,
                   ),
                 );
@@ -182,6 +182,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
         ),
       ),
       bottomNavigationBar: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 65,vertical: 16),
               padding: const EdgeInsets.all(16),
               decoration: const BoxDecoration(
                 color: Colors.white
@@ -270,48 +271,110 @@ class _LobbyScreenState extends State<LobbyScreen> {
       itemCount: _players.length,
       itemBuilder: (context, index) {
         final isHost = widget.isHost && index == 0;
-        return Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFE91E63),
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Stack(
-            children: [
-              Center(
-                child: Text(
-                  _players[index],
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+        final avatarAssetPath = _avatarAssetForPlayer(index);
+
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Align(
+              alignment: Alignment.centerRight,
+              child: Container(
+                height: 48,
+                padding: const EdgeInsets.only(left: 34, right: 18),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE91E63),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ),
-              if (isHost)
-                const Positioned(
-                  top: 8,
-                  left: 12,
-                  child: Icon(
-                    Icons.emoji_events,
-                    color: Colors.white,
-                    size: 20,
+                child: Center(
+                  child: Text(
+                    _players[index],
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-            ],
-          ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              top: -2,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 46,
+                    height: 46,
+                    padding: const EdgeInsets.all(3),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: ClipOval(
+                      child: Image.asset(
+                        avatarAssetPath,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: const Color(0xFFF2F2F2),
+                            child: const Icon(
+                              Icons.person,
+                              color: Color(0xFF2C3E7E),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  if (isHost)
+                    const Positioned(
+                      right: -2,
+                      bottom: -2,
+                      child: CircleAvatar(
+                        radius: 8,
+                        backgroundColor: Colors.white,
+                        child: Icon(
+                          Icons.emoji_events,
+                          size: 10,
+                          color: Color(0xFFE91E63),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
         );
       },
     );
+  }
+
+  String _avatarAssetForPlayer(int index) {
+    const avatarAssets = [
+      'assets/images/logo.png',
+      'assets/images/innergames logo.png',
+      'assets/images/han logo.png',
+      'assets/images/fontys logo.png',
+      'assets/images/skatepark_story.png',
+      'assets/images/background.png',
+    ];
+
+    if (index < avatarAssets.length) {
+      return avatarAssets[index];
+    }
+
+    return 'assets/images/logo.png';
   }
 }
 
