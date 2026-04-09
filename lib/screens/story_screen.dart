@@ -49,7 +49,7 @@ class _StoryScreenState extends State<StoryScreen> { // this state will manage t
   @override
   Widget build(BuildContext context) {
     return Scaffold( // column layout
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF7F7F7),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch, // make children take full width

@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
-
+ 
 // Import ONLY the screens we created that work
+import 'screens/welcome_screen.dart';
+import 'screens/welcome_screenV2.dart';
+import 'screens/home_screenV2.dart';
+import 'screens/splash_screen.dart';
+import 'screens/splash_screen2.dart';
 import 'screens/host_name_entry_screen.dart';
 import 'screens/host_share_screen.dart';
 import 'screens/join_pin_screen.dart';
 import 'screens/name_entry_screen.dart';
-import 'screens/lobby_host_screen.dart';
+import 'screens/lobby_screen.dart';
 import 'screens/create_join_screen.dart';
 import 'screens/share_game_screen.dart';
 import 'screens/story_screen.dart';
+import 'screens/avatar_selection_screen.dart';
+import 'screens/settings_screen.dart';
+import 'screens/Choosing_story.dart';
 
-// V2 imports Ryan
-import 'screens/splash_screen.dart';
-import 'screens/splash_screen2.dart';
-import 'screens/welcome_screenV2.dart';
-import 'screens/home_screenV2.dart';
 //test2
 void main() {
   runApp(const SocialityApp());
@@ -32,17 +35,14 @@ class SocialityApp extends StatelessWidget {
         primarySwatch: Colors.pink,
         fontFamily: 'SF Pro Text',
       ),
-      initialRoute: '/',
+      initialRoute: '/splash',
       onGenerateRoute: (settings) {
         print('🔄 Navigating to: ${settings.name}');
         
         switch (settings.name) {
           case '/':
             return MaterialPageRoute(
-              builder: (context) => const LobbyScreen(
-                isHost: false,
-                gameTitle: 'HET SKATEPARK',
-              ),
+              builder: (context) => const HomeScreenv2(),
             );
 
           case '/splash':
@@ -63,6 +63,16 @@ class SocialityApp extends StatelessWidget {
           case '/home':
             return MaterialPageRoute(
               builder: (context) => const HomeScreenv2(),
+            );
+
+          case '/settings':
+            return MaterialPageRoute(
+              builder: (context) => const SettingsScreen(),
+            );
+            
+          case '/ChoosingStories':
+            return MaterialPageRoute(
+              builder: (context) => const ChoosingStoryScreen(),
             );
             
           case '/host-name-entry':
@@ -157,6 +167,12 @@ class SocialityApp extends StatelessWidget {
           case '/story':
             return MaterialPageRoute(
               builder: (context) => const StoryScreen(),
+            );
+
+          case '/avatar-selection':
+            final args = settings.arguments as Map<String, dynamic>?;
+            return MaterialPageRoute(
+              builder: (context) => AvatarSelectionScreen(userData: args),
             );
 
           case '/game':
