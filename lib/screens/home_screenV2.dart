@@ -43,7 +43,7 @@ class HomeScreenv2 extends StatelessWidget {
               const SizedBox(height: 16),
 
               FilledButton.icon(
-                onPressed: () {},
+                onPressed: () => Navigator.pushNamed(context, '/settings'),
                 icon: const Icon(Icons.settings),
                 label: const Text('Settings'),
                 style: AppTheme.primaryButton,
