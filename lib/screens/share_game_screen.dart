@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/custom_app_bar.dart';
 
 class ShareGameScreen extends StatefulWidget {
   const ShareGameScreen({super.key});
@@ -15,32 +16,8 @@ class _HostShareScreenState extends State<ShareGameScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F2),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        titleSpacing: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
-        title: Row(
-          children: [
-            const SizedBox(width: 8),
-            Image.asset(
-              'assets/images/logo.png',
-              width: 28,
-              height: 28,
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              'Sociality',
-              style: TextStyle(
-                color: Colors.black87,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
+      backgroundColor: const Color(0xFFF7F7F7),
+      appBar: const CustomAppBar(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),

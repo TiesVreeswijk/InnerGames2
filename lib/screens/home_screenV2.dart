@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_themeRyan.dart';
+import '../widgets/custom_app_bar.dart';
 
 class HomeScreenv2 extends StatelessWidget {
   const HomeScreenv2({super.key});
@@ -7,32 +8,9 @@ class HomeScreenv2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF7F7F7),
       // 1. Custom Top Navigation Bar
-appBar: AppBar(
-  backgroundColor: AppTheme.lightGreyBg, 
-  elevation: 0,
-  toolbarHeight: 80, 
-  // shape property removed to make it perfectly rectangular
-  centerTitle: false,
-  title: Row(
-    children: [
-      Image.asset(
-        'assets/images/logo.png',
-        height: 40,
-      ),
-      const SizedBox(width: 12),
-      const Text(
-        'Sociality',
-        style: TextStyle(
-          color: Color(0xFF2C3E7E),
-          fontWeight: FontWeight.bold,
-          fontSize: 24,
-        ),
-      ),
-    ],
-  ),
-),
-      
+      appBar: const CustomAppBar(showBackButton: false),
       body: Stack(
         alignment: Alignment.center,
         children: [
@@ -47,7 +25,9 @@ appBar: AppBar(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               FilledButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.pushNamed(context, '/create-join');
+                },
                 icon: const Icon(Icons.play_arrow),
                 label: const Text('Play'),
                 style: AppTheme.primaryButton,

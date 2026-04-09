@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/name_input.dart';
+import '../widgets/custom_app_bar.dart';
 
 class HostNameEntryScreen extends StatefulWidget {
   final String storyTitle;
@@ -52,11 +53,12 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
 
     Navigator.pushReplacementNamed(
       context,
-      '/host-share',
+      '/avatar-selection',
       arguments: {
         'pin': pin,
         'storyTitle': widget.storyTitle,
         'hostName': name,
+        'isHost': true,
       },
     );
   }
@@ -64,49 +66,21 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xF7F7F7F7),
+      backgroundColor: const Color(0xFFF7F7F7),
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        backgroundColor: const Color(0xDBDBDBDB),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF2C3E7E)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Row(
-          children: [
-            Image.asset(
-              'assets/images/logo.png',
-              height: 40,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  width: 40,
-                  height: 40,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFE91E63),
-                    shape: BoxShape.circle,
-                  ),
-                );
-              },
+      appBar: const CustomAppBar(),
+      body: Stack(
+        alignment: Alignment.center,
+        children: [
+          
+          SafeArea(
+            child: NameInputWidget(
+              title: 'Create a new session',
+              controller: _nameController,
+              onSubmitted: _createGame,
             ),
-            const SizedBox(width: 12),
-            const Text(
-              'Sociality',
-              style: TextStyle(
-                color: Color(0xFF2C3E7E),
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-      body: SafeArea(
-        child: NameInputWidget(
-          title: 'Create a new session',
-          controller: _nameController,
-          onSubmitted: _createGame,
-        ),
+          ),
+        ],
       ),
     );
   }

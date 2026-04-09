@@ -68,6 +68,9 @@ class SocialityApp extends StatelessWidget {
           case '/settings':
             return MaterialPageRoute(
               builder: (context) => const SettingsScreen(),
+            case '/ChoosingStories':
+            return MaterialPageRoute(
+              builder: (context) => const ChoosingStoryScreen(),
             );
             
           case '/host-name-entry':
