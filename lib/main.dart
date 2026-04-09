@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 // Import ONLY the screens we created that work
 import 'screens/welcome_screen.dart';
 import 'screens/welcome_screenV2.dart';
-import 'screens/home_screen.dart';
 import 'screens/home_screenV2.dart';
 import 'screens/splash_screen.dart';
 import 'screens/splash_screen2.dart';
@@ -17,7 +16,8 @@ import 'screens/share_game_screen.dart';
 import 'screens/story_screen.dart';
 import 'screens/avatar_selection_screen.dart';
 import 'screens/settings_screen.dart';
- 
+import 'screens/Choosing_story.dart';
+
 //test2
 void main() {
   runApp(const SocialityApp());
@@ -68,7 +68,9 @@ class SocialityApp extends StatelessWidget {
           case '/settings':
             return MaterialPageRoute(
               builder: (context) => const SettingsScreen(),
-            case '/ChoosingStories':
+            );
+            
+          case '/ChoosingStories':
             return MaterialPageRoute(
               builder: (context) => const ChoosingStoryScreen(),
             );

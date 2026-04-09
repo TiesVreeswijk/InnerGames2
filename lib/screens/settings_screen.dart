@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/custom_app_bar.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -23,29 +24,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFE3E3E3),
-        elevation: 0,
-        toolbarHeight: 86,
-        titleSpacing: 16,
-        leadingWidth: 72,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 12),
-          child: Center(
-            child: Image.asset(
-              'assets/images/logo.png',
-              height: 40,
-            ),
-          ),
-        ),
-        title: const Text(
-          'Settings',
-          style: TextStyle(
-            color: titleBlue,
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
+      appBar: const CustomAppBar(
+        title: 'Settings',
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -53,20 +33,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(context),
-                style: OutlinedButton.styleFrom(
-                  shape: const CircleBorder(),
-                  side: const BorderSide(color: divider),
-                  padding: const EdgeInsets.all(14),
-                ),
-                child: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 18,
-                  color: Color(0xFF6A6670),
-                ),
-              ),
-              const SizedBox(height: 28),
               const _SectionTitle(title: 'Taal'),
               const SizedBox(height: 16),
               Row(
