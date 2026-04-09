@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import '../widgets/lobby_content.dart';
+import '../widgets/custom_app_bar.dart';
 
-class LobbyScreen extends StatefulWidget {
+class LobbyHostScreen extends StatefulWidget {
   final bool isHost;
   final String gameTitle;
   final List<String> players;
   
-  const LobbyScreen({
+  const LobbyHostScreen({
     Key? key,
     required this.isHost,
     required this.gameTitle,
@@ -14,10 +15,10 @@ class LobbyScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<LobbyScreen> createState() => _LobbyScreenState();
+  State<LobbyHostScreen> createState() => _LobbyHostScreenState();
 }
 
-class _LobbyScreenState extends State<LobbyScreen> {
+class _LobbyHostScreenState extends State<LobbyHostScreen> {
   late List<String> _players;
 
   @override
@@ -54,38 +55,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      appBar: AppBar(
-        backgroundColor:const Color.fromARGB(255, 219, 219, 219),
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: Row(
-          children: [
-            Image.asset(
-              'assets/images/logo.png',
-              height: 40,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  width: 40,
-                  height: 40,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFE4007D),
-                    shape: BoxShape.circle,
-                  ),
-                );
-              },
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              'Sociality',
-              style: TextStyle(
-                color: Color(0xFF2C3E7E),
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
+      appBar: const CustomAppBar(),
       body: SafeArea(
         child: LobbyContent(
           isHost: widget.isHost,
@@ -148,7 +118,7 @@ class _LobbyScreenTestApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: const LobbyScreen(
+      home: const LobbyHostScreen(
         isHost: true,
         gameTitle: 'HET SKATEPARK',
         players: ['Tobias', 'Jean Pierre', 'Lucas', 'Bob', 'Yannick', 'Quan del Dingel'],

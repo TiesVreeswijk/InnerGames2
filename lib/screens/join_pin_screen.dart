@@ -51,7 +51,7 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
     // Go to name entry
     Navigator.pushReplacementNamed(
       context,
-      '/lobby',
+      '/lobby_player',
       arguments: {'pin': _pin},
     );
   }

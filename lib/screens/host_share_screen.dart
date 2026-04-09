@@ -25,7 +25,7 @@ class _HostShareScreenState extends State<HostShareScreen> {
     // Navigate to lobby as host
     Navigator.pushReplacementNamed(
       context,
-      '/lobby',
+      '/lobby_host',
       arguments: {
         'isHost': true,
         'gameTitle': widget.storyTitle,
