@@ -10,13 +10,14 @@ import 'screens/host_name_entry_screen.dart';
 import 'screens/host_share_screen.dart';
 import 'screens/join_pin_screen.dart';
 import 'screens/name_entry_screen.dart';
-import 'screens/lobby_screen.dart';
+import 'screens/lobby_host_screen.dart' as lobby_host;
 import 'screens/create_join_screen.dart';
 import 'screens/share_game_screen.dart';
 import 'screens/story_screen.dart';
 import 'screens/avatar_selection_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/Choosing_story.dart';
+import 'screens/lobby_player_screen.dart' as lobby_player;
 
 //test2
 void main() {
@@ -157,8 +158,34 @@ class SocialityApp extends StatelessWidget {
             print('📍 Lobby args: $args');
             
             return MaterialPageRoute(
-              builder: (context) => LobbyScreen(
+              builder: (context) => lobby_player.LobbyScreen(
                 isHost: args?['isHost'] as bool? ?? false,
+                gameTitle: args?['gameTitle'] as String? ?? 'HET SKATEPARK',
+                players: (args?['players'] as List<dynamic>?)?.cast<String>() ?? [],
+              ),
+            );
+            
+          case '/lobby_player':
+            final args = settings.arguments as Map<String, dynamic>?;
+            print('📍 Lobby player args: $args');
+            
+            return MaterialPageRoute(
+              builder: (context) => lobby_player.LobbyScreen(
+                isHost: false,
+                gameTitle: args?['gameTitle'] as String? ?? 'HET SKATEPARK',
+                players: (args?['players'] as List<dynamic>?)?.cast<String>() ?? [],
+              ),
+            );
+            
+          case '/lobby_host':
+            final args = settings.arguments as Map<String, dynamic>?;
+            print('📍 Lobby host args: $args');
+
+            
+            
+            return MaterialPageRoute(
+              builder: (context) => lobby_host.LobbyHostScreen(
+                isHost: args?['isHost'] as bool? ?? true,
                 gameTitle: args?['gameTitle'] as String? ?? 'HET SKATEPARK',
                 players: (args?['players'] as List<dynamic>?)?.cast<String>() ?? [],
               ),
