@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:tweekracht_sociality/firebase_options.dart';
+import 'firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
  
 // Import ONLY the screens we created that work
 import 'screens/welcome_screen.dart';
@@ -19,8 +22,17 @@ import 'screens/settings_screen.dart';
 import 'screens/Choosing_story.dart';
 import 'screens/lobby_player_screen.dart' as lobby_player;
 
+import 'services/auth_service.dart';
+
 //test2
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  await AuthService().ensureSignedIn();
   runApp(const SocialityApp());
 }
 
