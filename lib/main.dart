@@ -164,28 +164,32 @@ class SocialityApp extends StatelessWidget {
                 ),
               ),
             );
-            
+
           case '/lobby':
-            final args = settings.arguments as Map<String, dynamic>?;
+            final args = settings.arguments as Map<String, dynamic>? ?? {};
             print('📍 Lobby args: $args');
-            
+
             return MaterialPageRoute(
               builder: (context) => lobby_player.LobbyScreen(
-                isHost: args?['isHost'] as bool? ?? false,
-                gameTitle: args?['gameTitle'] as String? ?? 'HET SKATEPARK',
-                players: (args?['players'] as List<dynamic>?)?.cast<String>() ?? [],
+                isHost: args['isHost'] as bool? ?? false,
+                gameTitle: args['gameTitle'] as String? ?? 'HET SKATEPARK',
+                lobbyId: args['lobbyId'] as String,
+                pin: args['pin'] as String? ?? args['joinCode'] as String? ?? '',
+                players: (args['players'] as List<dynamic>?)?.cast<String>() ?? [],
               ),
             );
-            
+
           case '/lobby_player':
-            final args = settings.arguments as Map<String, dynamic>?;
+            final args = settings.arguments as Map<String, dynamic>? ?? {};
             print('📍 Lobby player args: $args');
-            
+
             return MaterialPageRoute(
               builder: (context) => lobby_player.LobbyScreen(
-                isHost: false,
-                gameTitle: args?['gameTitle'] as String? ?? 'HET SKATEPARK',
-                players: (args?['players'] as List<dynamic>?)?.cast<String>() ?? [],
+                isHost: args['isHost'] as bool? ?? false,
+                gameTitle: args['gameTitle'] as String? ?? 'HET SKATEPARK',
+                lobbyId: args['lobbyId'] as String,
+                pin: args['pin'] as String? ?? args['joinCode'] as String? ?? '',
+                players: (args['players'] as List<dynamic>?)?.cast<String>() ?? [],
               ),
             );
             
@@ -197,9 +201,12 @@ class SocialityApp extends StatelessWidget {
             
             return MaterialPageRoute(
               builder: (context) => lobby_host.LobbyHostScreen(
-                isHost: args?['isHost'] as bool? ?? true,
-                gameTitle: args?['gameTitle'] as String? ?? 'HET SKATEPARK',
-                players: (args?['players'] as List<dynamic>?)?.cast<String>() ?? [],
+                isHost: args?['isHost'] as bool,
+                gameTitle: args?['gameTitle'] as String,
+                pin: args?['pin'] as String,
+                lobbyId: args?['lobbyId'] as String,
+                players: List<String>.from(args?['players'] ?? []),
+                hostName: args?['hostName'] as String?,
               ),
             );
             

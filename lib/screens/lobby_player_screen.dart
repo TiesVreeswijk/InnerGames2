@@ -1,16 +1,23 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../widgets/lobby_content.dart';
 import '../widgets/custom_app_bar.dart';
+import '../services/lobby_service.dart';
 
 class LobbyScreen extends StatefulWidget {
   final bool isHost;
   final String gameTitle;
+  final String lobbyId;
+  final String pin;
   final List<String> players;
-  
+
   const LobbyScreen({
     Key? key,
     required this.isHost,
     required this.gameTitle,
+    required this.lobbyId,
+    required this.pin,
     this.players = const [],
   }) : super(key: key);
 
@@ -19,21 +26,59 @@ class LobbyScreen extends StatefulWidget {
 }
 
 class _LobbyScreenState extends State<LobbyScreen> {
+  final LobbyService _lobbyService = LobbyService();
+
   late List<String> _players;
+  StreamSubscription<List<String>>? _playersSubscription;
+  StreamSubscription? _lobbySubscription;
 
   @override
   void initState() {
     super.initState();
+
     _players = List.from(widget.players);
-    
-    // TODO: Listen to Firebase for real-time player updates
-    // StreamSubscription _playersSubscription = FirebaseService
-    //   .listenToPlayers(gameId)
-    //   .listen((players) {
-    //     setState(() {
-    //       _players = players;
-    //     });
-    //   });
+
+    _playersSubscription =
+        _lobbyService.listenToPlayerNames(widget.lobbyId).listen((players) {
+          if (!mounted) return;
+
+          setState(() {
+            _players = players;
+          });
+        });
+
+    _lobbySubscription = _lobbyService.listenToLobby(widget.lobbyId).listen(
+          (snapshot) {
+        if (!mounted) return;
+
+        final data = snapshot.data();
+        if (data == null) return;
+
+        final status = data['status'] as String?;
+        final gamePhase = data['gamePhase'] as String?;
+
+        if (status == 'started' || gamePhase == 'started') {
+          Navigator.pushReplacementNamed(
+            context,
+            '/game',
+            arguments: {
+              'lobbyId': widget.lobbyId,
+              'pin': widget.pin,
+              'gameTitle': widget.gameTitle,
+              'players': _players,
+              'isHost': false,
+            },
+          );
+        }
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _playersSubscription?.cancel();
+    _lobbySubscription?.cancel();
+    super.dispose();
   }
 
   @override
@@ -62,11 +107,20 @@ class _LobbyScreenTestApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: const LobbyScreen(
-        isHost: true,
+    return const MaterialApp(
+      home: LobbyScreen(
+        isHost: false,
         gameTitle: 'HET SKATEPARK',
-        players: ['Tobias', 'Jean Pierre', 'Lucas', 'Bob', 'Yannick', 'Quan del Dingel'],
+        lobbyId: 'test-lobby-id',
+        pin: '1234',
+        players: [
+          'Tobias',
+          'Jean Pierre',
+          'Lucas',
+          'Bob',
+          'Yannick',
+          'Quan del Dingel',
+        ],
       ),
     );
   }

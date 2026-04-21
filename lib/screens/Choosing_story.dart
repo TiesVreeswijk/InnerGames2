@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
 import '../widgets/custom_app_bar.dart';
 import '../services/lobby_service.dart';
 import '../services/auth_service.dart';
@@ -7,42 +8,16 @@ import '../services/auth_service.dart';
 class ChoosingStoryScreen extends StatelessWidget {
   const ChoosingStoryScreen({super.key});
 
-  Future<User> _ensureSignedInAndReady() async {
-    User? user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      final credential = await FirebaseAuth.instance.signInAnonymously();
-      user = credential.user;
-    }
-
-    if (user == null) {
-      throw Exception('No Firebase user available');
-    }
-
-    await user.reload();
-    user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      throw Exception('Firebase user disappeared after reload');
-    }
-
-    await user.getIdToken(true);
-    await FirebaseAuth.instance.authStateChanges().firstWhere((u) => u != null);
-
-    return user;
-  }
-
   @override
   Widget build(BuildContext context) {
     final routeArgs =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
             {};
 
-    final String playerName =
-        routeArgs['hostName'] ??
-            routeArgs['playerName'] ??
-            routeArgs['name'] ??
-            'Host';
+    final String playerName = routeArgs['hostName'] ??
+        routeArgs['playerName'] ??
+        routeArgs['name'] ??
+        'Host';
 
     final dynamic selectedAvatar = routeArgs['selectedAvatar'];
 
@@ -50,70 +25,68 @@ class ChoosingStoryScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF7F7F7),
       appBar: const CustomAppBar(),
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 16,
-                          horizontal: 20,
-                        ),
-                        child: const Text(
-                          'Aanbevolen:',
-                          textAlign: TextAlign.left,
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildStoryCard(
-                        context,
-                        title: '1ST STORY\nHET SKATEPARK',
-                        imageUrl: 'assets/images/skatepark_story.png',
-                        onTap: () {
-                          _showStoryOptions(
-                            context,
-                            storyTitle: 'HET SKATEPARK',
-                            playerName: playerName,
-                            selectedAvatar: selectedAvatar,
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      _buildStoryCard(
-                        context,
-                        title: '2ND STORY\nDE APOTHEKER ASSISTENTEN',
-                        imageUrl:
-                        'assets/images/apothekerAssistenten_story.png',
-                        onTap: () {
-                          _showStoryOptions(
-                            context,
-                            storyTitle:
-                            'SPEELKAARTJES DE APOTHEKER ASSISTENTEN',
-                            playerName: playerName,
-                            selectedAvatar: selectedAvatar,
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      _buildPlaceholderCard(context),
-                      const SizedBox(height: 100),
-                    ],
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 4,
+                  ),
+                  child: Text(
+                    'Aanbevolen:',
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
+
+                const SizedBox(height: 12),
+
+                _buildStoryCard(
+                  context,
+                  title: '1ST STORY\nHET SKATEPARK',
+                  imageUrl: 'assets/images/skatepark_story.png',
+                  onTap: () {
+                    _showStoryOptions(
+                      context,
+                      storyTitle: 'HET SKATEPARK',
+                      playerName: playerName,
+                      selectedAvatar: selectedAvatar,
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 12),
+
+                _buildStoryCard(
+                  context,
+                  title: '2ND STORY\nDE APOTHEKER ASSISTENTEN',
+                  imageUrl: 'assets/images/apothekerAssistenten_story.png',
+                  onTap: () {
+                    _showStoryOptions(
+                      context,
+                      storyTitle: 'SPEELKAARTJES DE APOTHEKER ASSISTENTEN',
+                      playerName: playerName,
+                      selectedAvatar: selectedAvatar,
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 12),
+
+                _buildPlaceholderCard(),
+
+                const SizedBox(height: 100),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -145,29 +118,40 @@ class ChoosingStoryScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: Stack(
             children: [
-              Container(
-                width: double.infinity,
-                height: double.infinity,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(imageUrl),
-                    fit: BoxFit.cover,
-                    onError: (error, stackTrace) {},
+              Positioned.fill(
+                child: Image.asset(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: const Color(0xFFE8E8E8),
+                      child: Center(
+                        child: Icon(
+                          Icons.image_outlined,
+                          size: 64,
+                          color: Colors.grey.shade400,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.1),
+                        Colors.black.withOpacity(0.6),
+                      ],
+                    ),
                   ),
                 ),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.1),
-                      Colors.black.withOpacity(0.6),
-                    ],
-                  ),
-                ),
-              ),
+
               Center(
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -190,6 +174,7 @@ class ChoosingStoryScreen extends StatelessWidget {
                   ),
                 ),
               ),
+
               Positioned(
                 right: 16,
                 bottom: 16,
@@ -221,7 +206,7 @@ class ChoosingStoryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaceholderCard(BuildContext context) {
+  Widget _buildPlaceholderCard() {
     return Container(
       height: 200,
       margin: const EdgeInsets.symmetric(vertical: 4),
@@ -284,206 +269,118 @@ class ChoosingStoryScreen extends StatelessWidget {
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20),
+        ),
       ),
-      builder: (BuildContext modalContext) => Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              storyTitle,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 24),
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE91E63),
-                  borderRadius: BorderRadius.circular(8),
+      builder: (BuildContext modalContext) {
+        return Padding(
+          padding: const EdgeInsets.all(24),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  storyTitle,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
-                child: const Icon(Icons.games, color: Colors.white),
-              ),
-              title: const Text(
-                'Spel hosten',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: const Text('Start een nieuw spel als host'),
-              onTap: () async {
-                final authService = AuthService();
-                final lobbyService = LobbyService();
 
-                try {
-                  final user = await authService.ensureSignedIn();
+                const SizedBox(height: 24),
 
-                  debugPrint('UID before createLobby: ${user.uid}');
-                  debugPrint(
-                    'PROJECT ID FROM APP: ${FirebaseAuth.instance.app.options.projectId}',
-                  );
-
-                  final result = await lobbyService.createLobby2(
-                    playerName: playerName,
-                  );
-
-                  if (!context.mounted) return;
-
-                  Navigator.pop(modalContext);
-
-                  Navigator.pushNamed(
-                    context,
-                    '/host-share',
-                    arguments: {
-                      'lobbyId': result.lobbyId,
-                      'joinCode': result.joinCode,
-                      'pin': result.joinCode,
-                      'isHost': true,
-                      'gameTitle': storyTitle,
-                      'players': [playerName],
-                      'hostName': playerName,
-                      'selectedAvatar': selectedAvatar,
-                    },
-                  );
-                } catch (e) {
-                  if (!context.mounted) return;
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Lobby aanmaken mislukt: $e'),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE91E63),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  );
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showHostOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext modalContext) => Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Kies een verhaal om te hosten',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 24),
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE91E63),
-                  borderRadius: BorderRadius.circular(8),
+                    child: const Icon(
+                      Icons.games,
+                      color: Colors.white,
+                    ),
+                  ),
+                  title: const Text(
+                    'Spel hosten',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  subtitle: const Text(
+                    'Start een nieuw spel als host',
+                  ),
+                  onTap: () async {
+                    await _createLobbyAndGoToHostLobby(
+                      context: context,
+                      modalContext: modalContext,
+                      storyTitle: storyTitle,
+                      playerName: playerName,
+                      selectedAvatar: selectedAvatar,
+                    );
+                  },
                 ),
-                child: const Icon(Icons.skateboarding, color: Colors.white),
-              ),
-              title: const Text(
-                'HET SKATEPARK',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: const Text('1e verhaal'),
-              onTap: () {
-                Navigator.pop(modalContext);
-                Navigator.pushNamed(context, '/host-share');
-              },
+              ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showJoinOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext modalContext) => Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Deelnemen aan spel',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 24),
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE91E63),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.pin, color: Colors.white),
-              ),
-              title: const Text(
-                'PIN invoeren',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: const Text('Voer een 4-cijferige PIN in'),
-              onTap: () {
-                Navigator.pop(modalContext);
-                Navigator.pushNamed(context, '/join-pin');
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2C3E7E),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.qr_code_scanner, color: Colors.white),
-              ),
-              title: const Text(
-                'QR-code scannen',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: const Text('Scan de QR-code van de host'),
-              onTap: () {
-                Navigator.pop(modalContext);
-                Navigator.pushNamed(context, '/join-qr');
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _createGame(BuildContext context, String storyTitle) {
-    Navigator.pushNamed(
-      context,
-      '/create-join',
-      arguments: {
-        'storyTitle': storyTitle,
+          ),
+        );
       },
     );
+  }
+
+  Future<void> _createLobbyAndGoToHostLobby({
+    required BuildContext context,
+    required BuildContext modalContext,
+    required String storyTitle,
+    required String playerName,
+    required dynamic selectedAvatar,
+  }) async {
+    final authService = AuthService();
+    final lobbyService = LobbyService();
+
+    try {
+      final user = await authService.ensureSignedIn();
+
+      debugPrint('UID before createLobby: ${user.uid}');
+      debugPrint(
+        'PROJECT ID FROM APP: ${FirebaseAuth.instance.app.options.projectId}',
+      );
+
+      final result = await lobbyService.createLobby2(
+        playerName: playerName,
+      );
+
+      if (!context.mounted) return;
+
+      Navigator.pop(modalContext);
+
+      Navigator.pushReplacementNamed(
+        context,
+        '/lobby_host',
+        arguments: {
+          'lobbyId': result.lobbyId,
+          'joinCode': result.joinCode,
+          'pin': result.joinCode,
+          'isHost': true,
+          'gameTitle': storyTitle,
+          'players': [playerName],
+          'hostName': playerName,
+          'selectedAvatar': selectedAvatar,
+        },
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lobby aanmaken mislukt: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

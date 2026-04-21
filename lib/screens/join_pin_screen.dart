@@ -41,11 +41,10 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
             {};
 
-    final String playerName =
-        routeArgs['playerName'] ??
-            routeArgs['hostName'] ??
-            routeArgs['name'] ??
-            'Player';
+    final String playerName = routeArgs['playerName'] ??
+        routeArgs['hostName'] ??
+        routeArgs['name'] ??
+        'Player';
 
     final selectedAvatar = routeArgs['selectedAvatar'];
 
@@ -62,7 +61,7 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
       debugPrint('Joining with uid: ${user.uid}');
       debugPrint('Joining with pin: $_pin');
 
-      final lobbyId = await lobbyService.joinLobby(
+      final result = await lobbyService.joinLobby(
         playerName: playerName,
         joinCode: _pin,
       );
@@ -73,9 +72,10 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
         context,
         '/lobby_player',
         arguments: {
-          'lobbyId': lobbyId,
-          'joinCode': _pin,
-          'pin': _pin,
+          'lobbyId': result.lobbyId,
+          'joinCode': result.joinCode,
+          'pin': result.joinCode,
+          'gameTitle': routeArgs['gameTitle'] ?? 'Lobby',
           'playerName': playerName,
           'selectedAvatar': selectedAvatar,
           'isHost': false,
@@ -92,6 +92,7 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Deelnemen mislukt: $e'),
+          backgroundColor: Colors.red,
         ),
       );
     }
@@ -115,13 +116,18 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
               ),
             ),
             const SizedBox(height: 60),
-            Text(
-              _pin.isEmpty ? '' : _pin,
-              style: const TextStyle(
-                fontSize: 80,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF2C3E7E),
-                letterSpacing: 20,
+            SizedBox(
+              height: 100,
+              child: Center(
+                child: Text(
+                  _pin.isEmpty ? '' : _pin,
+                  style: const TextStyle(
+                    fontSize: 80,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2C3E7E),
+                    letterSpacing: 20,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -145,9 +151,11 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
                       child: Row(
                         children: List.generate(3, (col) {
                           final number = (row * 3 + col + 1).toString();
+
                           return Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 6),
+                              padding:
+                              const EdgeInsets.symmetric(horizontal: 6),
                               child: _buildNumberButton(number),
                             ),
                           );
