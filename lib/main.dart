@@ -4,7 +4,7 @@ import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
  
 // Import ONLY the screens we created that work
-import 'screens/welcome_screen.dart';
+import 'screens/Choosing_story.dart';
 import 'screens/welcome_screenV2.dart';
 import 'screens/home_screenV2.dart';
 import 'screens/splash_screen.dart';
@@ -83,7 +83,7 @@ class SocialityApp extends StatelessWidget {
               builder: (context) => const SettingsScreen(),
             );
             
-          case '/ChoosingStories':
+            case '/ChoosingStories':
             return MaterialPageRoute(
               builder: (context) => const ChoosingStoryScreen(),
             );
