@@ -29,6 +29,9 @@ dependencies:
   firebase_auth: ^5.7.0
   cloud_functions: ^5.6.2
 
+  #animations/styling
+  flutter_staggered_animations: ^1.1.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
