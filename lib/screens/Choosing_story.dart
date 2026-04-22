@@ -1,210 +1,103 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
 import '../widgets/custom_app_bar.dart';
+import '../services/lobby_service.dart';
+import '../services/auth_service.dart';
 
 class ChoosingStoryScreen extends StatelessWidget {
-  const ChoosingStoryScreen({Key? key}) : super(key: key);
+  const ChoosingStoryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final routeArgs =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+            {};
+
+    final String playerName = routeArgs['hostName'] ??
+        routeArgs['playerName'] ??
+        routeArgs['name'] ??
+        'Host';
+
+    final dynamic selectedAvatar = routeArgs['selectedAvatar'];
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F7), // Light grey background like in image
+      backgroundColor: const Color(0xFFF7F7F7),
       appBar: const CustomAppBar(),
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // "Aanbevolen" Header
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 16,
-                          horizontal: 20,
-                        ),
-                      
-                        child: const Text(
-                          'Aanbevolen:',
-                          textAlign: TextAlign.left,
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 12),
-                      
-                      // Story Cards
-                      _buildStoryCard(
-                        context,
-                        title: '1ST STORY\nHET SKATEPARK',
-                        imageUrl: 'assets/images/skatepark_story.png',
-                        onTap: () {
-                          _showStoryOptions(context, 'HET SKATEPARK');
-                        },
-                      ),
-                      
-                      const SizedBox(height: 12),
-                      
-                      // Second story card
-                      _buildStoryCard(
-                        context,
-                        title: '2ND STORY\nDE APOTHEKER ASSISTENTEN',
-                        imageUrl: 'assets/images/apothekerAssistenten_story.png',
-                        onTap: () {
-                          _showStoryOptions(context, 'SPEELKAARTJES DE APOTHEKER ASSISTENTEN');
-                        },
-                      ),
-                      
-                      const SizedBox(height: 12),
-                      
-                      // Placeholder cards (for future stories)
-                      _buildPlaceholderCard(context),
-                      
-                      const SizedBox(height: 100), // Space for fixed bottom bar
-                    ],
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 4,
+                  ),
+                  child: Text(
+                    'Aanbevolen:',
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
+
+                const SizedBox(height: 12),
+
+                _buildStoryCard(
+                  context,
+                  title: '1ST STORY\nHET SKATEPARK',
+                  imageUrl: 'assets/images/skatepark_story.png',
+                  onTap: () {
+                    _showStoryOptions(
+                      context,
+                      storyTitle: 'HET SKATEPARK',
+                      playerName: playerName,
+                      selectedAvatar: selectedAvatar,
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 12),
+
+                _buildStoryCard(
+                  context,
+                  title: '2ND STORY\nDE APOTHEKER ASSISTENTEN',
+                  imageUrl: 'assets/images/apothekerAssistenten_story.png',
+                  onTap: () {
+                    _showStoryOptions(
+                      context,
+                      storyTitle: 'SPEELKAARTJES DE APOTHEKER ASSISTENTEN',
+                      playerName: playerName,
+                      selectedAvatar: selectedAvatar,
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 12),
+
+                _buildPlaceholderCard(),
+
+                const SizedBox(height: 100),
+              ],
             ),
-          ],
+          ),
         ),
       ),
-      // // Fixed bottom bar
-      // bottomNavigationBar: Container(
-      //   padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-      //   decoration: const BoxDecoration(
-      //     color: Color(0xFFF2F2F2), // Match background
-      //   ),
-      //   child: SafeArea(
-      //     top: false,
-      //     child: Row(
-      //       children: [
-      //         // Start Button (Host) - Pink like in image
-      //         Expanded(
-      //           flex: 2,
-      //           child: SizedBox(
-      //             height: 56,
-      //             child: ElevatedButton(
-      //               onPressed: () {
-      //                 _showHostOptions(context);
-      //               },
-      //               style: ElevatedButton.styleFrom(
-      //                 backgroundColor: const Color(0xFFE91E63), // Pink
-      //                 shape: RoundedRectangleBorder(
-      //                   borderRadius: BorderRadius.circular(28),
-      //                 ),
-      //                 elevation: 2,
-      //                 padding: const EdgeInsets.symmetric(horizontal: 12),
-      //               ),
-      //               child: Column(
-      //                 mainAxisAlignment: MainAxisAlignment.center,
-      //                 mainAxisSize: MainAxisSize.min,
-      //                 children: const [
-      //                   Icon(Icons.play_arrow, color: Colors.white, size: 28),
-      //                   SizedBox(height: 4),
-      //                   Text(
-      //                     'Start',
-      //                     style: TextStyle(
-      //                       fontSize: 16,
-      //                       fontWeight: FontWeight.bold,
-      //                       color: Colors.white,
-      //                     ),
-      //                   ),
-      //                 ],
-      //               ),
-      //             ),
-      //           ),
-      //         ),
-      //         
-      //         const SizedBox(width: 12),
-      //         
-      //         // Deelnemen Button (Join) - Light grey like in image
-      //         Expanded(
-      //           flex: 3,
-      //           child: SizedBox(
-      //             height: 56,
-      //             child: ElevatedButton(
-      //               onPressed: () {
-      //                 _showJoinOptions(context);
-      //               },
-      //               style: ElevatedButton.styleFrom(
-      //                 backgroundColor: const Color(0xFFE8E8E8), // Light grey
-      //                 shape: RoundedRectangleBorder(
-      //                   borderRadius: BorderRadius.circular(28),
-      //                 ),
-      //                 elevation: 2,
-      //                 padding: const EdgeInsets.symmetric(horizontal: 12),
-      //               ),
-      //               child: Column(
-      //                 mainAxisAlignment: MainAxisAlignment.center,
-      //                 mainAxisSize: MainAxisSize.min,
-      //                 children: const [
-      //                   Icon(Icons.groups, color: Colors.black, size: 22),
-      //                   SizedBox(height: 4),
-      //                   Text(
-      //                     'Deelnemen',
-      //                     style: TextStyle(
-      //                       fontSize: 15,
-      //                       fontWeight: FontWeight.bold,
-      //                       color: Colors.black,
-      //                     ),
-      //                     overflow: TextOverflow.ellipsis,
-      //                   ),
-      //                 ],
-      //               ),
-      //             ),
-      //           ),
-      //         ),
-      //         
-      //         const SizedBox(width: 12),
-      //         
-      //         // QR Scan Button - matching the image style
-      //         Container(
-      //           width: 56,
-      //           height: 56,
-      //           decoration: BoxDecoration(
-      //             color: const Color(0xFFE8E8E8), // Light grey to match
-      //             borderRadius: BorderRadius.circular(28),
-      //             boxShadow: [
-      //               BoxShadow(
-      //                 color: Colors.black.withOpacity(0.1),
-      //                 blurRadius: 2,
-      //                 offset: const Offset(0, 1),
-      //               ),
-      //             ],
-      //           ),
-      //           child: IconButton(
-      //             onPressed: () {
-      //               Navigator.pushNamed(context, '/join-qr');
-      //             },
-      //             padding: EdgeInsets.zero,
-      //             icon: const Icon(
-      //               Icons.qr_code_scanner,
-      //               color: Colors.black,
-      //               size: 28,
-      //             ),
-      //           ),
-      //         ),
-      //       ],
-      //     ),
-      //   ),
-      // ),
     );
   }
 
   Widget _buildStoryCard(
-    BuildContext context, {
-    required String title,
-    required String imageUrl,
-    required VoidCallback onTap,
-  }) {
+      BuildContext context, {
+        required String title,
+        required String imageUrl,
+        required VoidCallback onTap,
+      }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -225,34 +118,40 @@ class ChoosingStoryScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: Stack(
             children: [
-              // Background Image
-              Container(
-                width: double.infinity,
-                height: double.infinity,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(imageUrl),
-                    fit: BoxFit.cover,
-                    onError: (error, stackTrace) {},
+              Positioned.fill(
+                child: Image.asset(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: const Color(0xFFE8E8E8),
+                      child: Center(
+                        child: Icon(
+                          Icons.image_outlined,
+                          size: 64,
+                          color: Colors.grey.shade400,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.1),
+                        Colors.black.withOpacity(0.6),
+                      ],
+                    ),
                   ),
                 ),
               ),
-              
-              // Gradient overlay
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.1),
-                      Colors.black.withOpacity(0.6),
-                    ],
-                  ),
-                ),
-              ),
-              
-              // Title Container
+
               Center(
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -275,8 +174,7 @@ class ChoosingStoryScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              
-              // Play button - repositioned like in image
+
               Positioned(
                 right: 16,
                 bottom: 16,
@@ -308,12 +206,12 @@ class ChoosingStoryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaceholderCard(BuildContext context) {
+  Widget _buildPlaceholderCard() {
     return Container(
       height: 200,
       margin: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFE8E8E8), // Light grey like in image
+        color: const Color(0xFFE8E8E8),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -325,7 +223,6 @@ class ChoosingStoryScreen extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // Placeholder content
           Center(
             child: Icon(
               Icons.image_outlined,
@@ -333,8 +230,6 @@ class ChoosingStoryScreen extends StatelessWidget {
               color: Colors.grey.shade400,
             ),
           ),
-          
-          // Play button - matching the main card style
           Positioned(
             right: 16,
             bottom: 16,
@@ -352,7 +247,7 @@ class ChoosingStoryScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.play_arrow,
                 color: Colors.black,
                 size: 28,
@@ -364,189 +259,128 @@ class ChoosingStoryScreen extends StatelessWidget {
     );
   }
 
-  void _showStoryOptions(BuildContext context, String storyTitle) {
+  void _showStoryOptions(
+      BuildContext context, {
+        required String storyTitle,
+        required String playerName,
+        required dynamic selectedAvatar,
+      }) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext modalContext) => Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              storyTitle,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 24),
-            
-            // Host option
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE91E63),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.games, color: Colors.white),
-              ),
-              title: const Text(
-                'Spel hosten',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: const Text('Start een nieuw spel als host'),
-              onTap: () {
-                print('Spel hosten tapped');
-                Navigator.pop(modalContext); // Close modal
-                print('Modal closed, navigating to /host-share');
-                Navigator.pushNamed(context, '/host-share'); // Use parent context
-              },
-            ),
-          ],
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20),
         ),
       ),
-    );
-  }
-
-  void _showHostOptions(BuildContext context) {
-    // Show available stories to host
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext modalContext) => Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Kies een verhaal om te hosten',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 24),
-            
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE91E63),
-                  borderRadius: BorderRadius.circular(8),
+      builder: (BuildContext modalContext) {
+        return Padding(
+          padding: const EdgeInsets.all(24),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  storyTitle,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
-                child: const Icon(Icons.skateboarding, color: Colors.white),
-              ),
-              title: const Text(
-                'HET SKATEPARK',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: const Text('1e verhaal'),
-              onTap: () {
-                Navigator.pop(modalContext); // Close modal
-                Navigator.pushNamed(context, '/host-share'); // Use parent context
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  void _showJoinOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext modalContext) => Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Deelnemen aan spel',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 24),
-            
-            // PIN option
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE91E63),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.pin, color: Colors.white),
-              ),
-              title: const Text(
-                'PIN invoeren',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: const Text('Voer een 4-cijferige PIN in'),
-              onTap: () {
-                Navigator.pop(modalContext); // Close modal
-                Navigator.pushNamed(context, '/join-pin'); // Use parent context
-              },
-            ),
-            
-            const Divider(),
-            
-            // QR option
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2C3E7E),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.qr_code_scanner, color: Colors.white),
-              ),
-              title: const Text(
-                'QR-code scannen',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: const Text('Scan de QR-code van de host'),
-              onTap: () {
-                Navigator.pop(modalContext); // Close modal
-                Navigator.pushNamed(context, '/join-qr'); // Use parent context
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+                const SizedBox(height: 24),
 
-  void _createGame(BuildContext context, String storyTitle) {
-    print('Creating game with story: $storyTitle');
-    
-    // Navigate to host name entry screen via route
-    Navigator.pushNamed(
-      context,
-      '/create-join',
-      arguments: {
-        'storyTitle': storyTitle,
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE91E63),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.games,
+                      color: Colors.white,
+                    ),
+                  ),
+                  title: const Text(
+                    'Spel hosten',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  subtitle: const Text(
+                    'Start een nieuw spel als host',
+                  ),
+                  onTap: () async {
+                    await _createLobbyAndGoToHostLobby(
+                      context: context,
+                      modalContext: modalContext,
+                      storyTitle: storyTitle,
+                      playerName: playerName,
+                      selectedAvatar: selectedAvatar,
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
       },
-    ).then((value) {
-      print('Returned from host name entry');
-    }).catchError((error) {
-      print('Navigation error: $error');
-    });
+    );
+  }
+
+  Future<void> _createLobbyAndGoToHostLobby({
+    required BuildContext context,
+    required BuildContext modalContext,
+    required String storyTitle,
+    required String playerName,
+    required dynamic selectedAvatar,
+  }) async {
+    final authService = AuthService();
+    final lobbyService = LobbyService();
+
+    try {
+      final user = await authService.ensureSignedIn();
+
+      debugPrint('UID before createLobby: ${user.uid}');
+      debugPrint(
+        'PROJECT ID FROM APP: ${FirebaseAuth.instance.app.options.projectId}',
+      );
+
+      final result = await lobbyService.createLobby2(
+        playerName: playerName,
+      );
+
+      if (!context.mounted) return;
+
+      Navigator.pop(modalContext);
+
+      Navigator.pushReplacementNamed(
+        context,
+        '/lobby_host',
+        arguments: {
+          'lobbyId': result.lobbyId,
+          'joinCode': result.joinCode,
+          'pin': result.joinCode,
+          'isHost': true,
+          'gameTitle': storyTitle,
+          'players': [playerName],
+          'hostName': playerName,
+          'selectedAvatar': selectedAvatar,
+        },
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lobby aanmaken mislukt: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

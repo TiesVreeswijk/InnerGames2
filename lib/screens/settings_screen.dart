@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/custom_app_bar.dart';
 
 import '../theme/app_themeRyan.dart';
 import '../widgets/custom_app_bar.dart';
@@ -24,7 +25,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       backgroundColor: Colors.white,
       appBar: const CustomAppBar(
         title: 'Settings',
-        showBackButton: false,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -32,21 +32,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(context),
-                style: OutlinedButton.styleFrom(
-                  shape: const CircleBorder(),
-                  side: const BorderSide(color: AppTheme.settingsDivider),
-                  padding: const EdgeInsets.all(14),
-                ),
-                child: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 18,
-                  color: AppTheme.settingsMuted,
-                ),
-              ),
-              const SizedBox(height: 28),
-              const SettingsSectionTitle(title: 'Taal'),
+              const _SectionTitle(title: 'Taal'),
               const SizedBox(height: 16),
               SettingsInlineRadioGroup<String>(
                 groupValue: _selectedLanguage,

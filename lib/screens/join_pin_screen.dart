@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_app_bar.dart';
+import '../services/auth_service.dart';
+import '../services/lobby_service.dart';
 
 class JoinPinScreen extends StatefulWidget {
-  const JoinPinScreen({Key? key}) : super(key: key);
+  const JoinPinScreen({super.key});
 
   @override
   State<JoinPinScreen> createState() => _JoinPinScreenState();
@@ -13,12 +15,11 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
   bool _isValidating = false;
 
   void _addDigit(String digit) {
-    if (_pin.length < 4) {
+    if (_pin.length < 4 && !_isValidating) {
       setState(() {
         _pin += digit;
       });
-      
-      // Auto-validate when 4 digits entered
+
       if (_pin.length == 4) {
         _validateAndContinue();
       }
@@ -26,7 +27,7 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
   }
 
   void _removeDigit() {
-    if (_pin.isNotEmpty) {
+    if (_pin.isNotEmpty && !_isValidating) {
       setState(() {
         _pin = _pin.substring(0, _pin.length - 1);
       });
@@ -36,24 +37,65 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
   Future<void> _validateAndContinue() async {
     if (_pin.length != 4) return;
 
+    final routeArgs =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+            {};
+
+    final String playerName = routeArgs['playerName'] ??
+        routeArgs['hostName'] ??
+        routeArgs['name'] ??
+        'Player';
+
+    final selectedAvatar = routeArgs['selectedAvatar'];
+
     setState(() {
       _isValidating = true;
     });
 
-    await Future.delayed(const Duration(milliseconds: 500));
+    final authService = AuthService();
+    final lobbyService = LobbyService();
 
-    if (!mounted) return;
+    try {
+      final user = await authService.ensureSignedIn();
 
-    setState(() {
-      _isValidating = false;
-    });
+      debugPrint('Joining with uid: ${user.uid}');
+      debugPrint('Joining with pin: $_pin');
 
-    // Go to name entry
-    Navigator.pushReplacementNamed(
-      context,
-      '/lobby',
-      arguments: {'pin': _pin},
-    );
+      final result = await lobbyService.joinLobby(
+        playerName: playerName,
+        joinCode: _pin,
+      );
+
+      if (!mounted) return;
+
+      Navigator.pushReplacementNamed(
+        context,
+        '/lobby_player',
+        arguments: {
+          'lobbyId': result.lobbyId,
+          'joinCode': result.joinCode,
+          'pin': result.joinCode,
+          'gameTitle': routeArgs['gameTitle'] ?? 'Lobby',
+          'playerName': playerName,
+          'selectedAvatar': selectedAvatar,
+          'isHost': false,
+        },
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isValidating = false;
+        _pin = '';
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Deelnemen mislukt: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -65,8 +107,6 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
         child: Column(
           children: [
             const SizedBox(height: 40),
-            
-            // Title
             const Text(
               'Deelnemen aan spel',
               style: TextStyle(
@@ -75,48 +115,47 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
                 color: Colors.black87,
               ),
             ),
-            
             const SizedBox(height: 60),
-            
-            // PIN Display - SIMPLE like old design (just big numbers)
-            Text(
-              _pin.isEmpty ? '' : _pin,
-              style: const TextStyle(
-                fontSize: 80,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF2C3E7E),
-                letterSpacing: 20,
+            SizedBox(
+              height: 100,
+              child: Center(
+                child: Text(
+                  _pin.isEmpty ? '' : _pin,
+                  style: const TextStyle(
+                    fontSize: 80,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2C3E7E),
+                    letterSpacing: 20,
+                  ),
+                ),
               ),
             ),
-            
             const SizedBox(height: 24),
-            
-            // Subtitle
             Text(
-              'Voer de 4-cijferige PIN in',
+              _isValidating
+                  ? 'Lobby zoeken...'
+                  : 'Voer de 4-cijferige PIN in',
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey.shade600,
               ),
             ),
-            
             const Spacer(),
-            
-            // Number pad
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
               child: Column(
                 children: [
-                  // Rows 1-3
                   ...List.generate(3, (row) {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Row(
                         children: List.generate(3, (col) {
                           final number = (row * 3 + col + 1).toString();
+
                           return Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 6),
+                              padding:
+                              const EdgeInsets.symmetric(horizontal: 6),
                               child: _buildNumberButton(number),
                             ),
                           );
@@ -124,8 +163,6 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
                       ),
                     );
                   }),
-                  
-                  // Row 4: Empty, 0, Backspace
                   Row(
                     children: [
                       const Expanded(child: SizedBox()),
