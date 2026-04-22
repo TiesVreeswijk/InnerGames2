@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:tweekracht_sociality/firebase_options.dart';
+import 'firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
  
 // Import ONLY the screens we created that work
 import 'screens/welcome_screen.dart';
@@ -19,8 +22,17 @@ import 'screens/settings_screen.dart';
 import 'screens/Choosing_story.dart';
 import 'screens/lobby_player_screen.dart' as lobby_player;
 
+import 'services/auth_service.dart';
+
 //test2
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  await AuthService().ensureSignedIn();
   runApp(const SocialityApp());
 }
 
@@ -152,28 +164,32 @@ class SocialityApp extends StatelessWidget {
                 ),
               ),
             );
-            
+
           case '/lobby':
-            final args = settings.arguments as Map<String, dynamic>?;
+            final args = settings.arguments as Map<String, dynamic>? ?? {};
             print('📍 Lobby args: $args');
-            
+
             return MaterialPageRoute(
               builder: (context) => lobby_player.LobbyScreen(
-                isHost: args?['isHost'] as bool? ?? false,
-                gameTitle: args?['gameTitle'] as String? ?? 'HET SKATEPARK',
-                players: (args?['players'] as List<dynamic>?)?.cast<String>() ?? [],
+                isHost: args['isHost'] as bool? ?? false,
+                gameTitle: args['gameTitle'] as String? ?? 'HET SKATEPARK',
+                lobbyId: args['lobbyId'] as String,
+                pin: args['pin'] as String? ?? args['joinCode'] as String? ?? '',
+                players: (args['players'] as List<dynamic>?)?.cast<String>() ?? [],
               ),
             );
-            
+
           case '/lobby_player':
-            final args = settings.arguments as Map<String, dynamic>?;
+            final args = settings.arguments as Map<String, dynamic>? ?? {};
             print('📍 Lobby player args: $args');
-            
+
             return MaterialPageRoute(
               builder: (context) => lobby_player.LobbyScreen(
-                isHost: false,
-                gameTitle: args?['gameTitle'] as String? ?? 'HET SKATEPARK',
-                players: (args?['players'] as List<dynamic>?)?.cast<String>() ?? [],
+                isHost: args['isHost'] as bool? ?? false,
+                gameTitle: args['gameTitle'] as String? ?? 'HET SKATEPARK',
+                lobbyId: args['lobbyId'] as String,
+                pin: args['pin'] as String? ?? args['joinCode'] as String? ?? '',
+                players: (args['players'] as List<dynamic>?)?.cast<String>() ?? [],
               ),
             );
             
@@ -185,9 +201,12 @@ class SocialityApp extends StatelessWidget {
             
             return MaterialPageRoute(
               builder: (context) => lobby_host.LobbyHostScreen(
-                isHost: args?['isHost'] as bool? ?? true,
-                gameTitle: args?['gameTitle'] as String? ?? 'HET SKATEPARK',
-                players: (args?['players'] as List<dynamic>?)?.cast<String>() ?? [],
+                isHost: args?['isHost'] as bool,
+                gameTitle: args?['gameTitle'] as String,
+                pin: args?['pin'] as String,
+                lobbyId: args?['lobbyId'] as String,
+                players: List<String>.from(args?['players'] ?? []),
+                hostName: args?['hostName'] as String?,
               ),
             );
             

@@ -1,0 +1,43 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "innergames2",
+          "appId": "1:27518104679:android:b13aa9ddf1cf7dd4ac50c2",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "innergames2",
+          "configurations": {
+            "android": "1:27518104679:android:b13aa9ddf1cf7dd4ac50c2",
+            "ios": "1:27518104679:ios:bdc54aafa912ed54ac50c2",
+            "macos": "1:27518104679:ios:bdc54aafa912ed54ac50c2",
+            "web": "1:27518104679:web:e6e301f5bcd6653cac50c2",
+            "windows": "1:27518104679:web:dd797cf365c438c6ac50c2"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint",
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
+    }
+  ]
+}
