@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "479216788236",
-    "project_id": "tweekrachtsociality",
-    "storage_bucket": "tweekrachtsociality.firebasestorage.app"
+    "project_number": "27518104679",
+    "project_id": "innergames2",
+    "storage_bucket": "innergames2.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:479216788236:android:450c6d41a1e92a14511f29",
+        "mobilesdk_app_id": "1:27518104679:android:b13aa9ddf1cf7dd4ac50c2",
         "android_client_info": {
           "package_name": "com.tweekracht.tweekracht_sociality"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBbd9ASzBJzjY_PerBc6o16Y5XfoEr7Qt4"
+          "current_key": "AIzaSyATBQC_4pXrbahWzRqI1T7n_vnEZ1jViII"
         }
       ],
       "services": {
