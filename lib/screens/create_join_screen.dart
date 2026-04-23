@@ -13,52 +13,43 @@ class CreateJoinScreen extends StatelessWidget {
       body: Stack(
         alignment: Alignment.center,
         children: [
-          // Background Logo (Watermark)
+          // 1. Background Logo (Watermark)
           Opacity(
             opacity: 0.1,
             child: Image.asset('assets/images/logo.png'),
           ),
+          
+          // 2. Main Content
           SafeArea(
-            child: Column(
-              children: [
-                Expanded(
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SocialityActionButton(
-                          text: 'Create',
-                          icon: Icons.link,
-                          onPressed: () {
-                            debugPrint('Create pressed');
-                            Navigator.pushNamed(context, '/host-name-entry');
-                          },
-                        ),
-                        const SizedBox(height: 56),
-                        SocialityActionButton(
-                          text: 'Join',
-                          icon: Icons.add,
-                          onPressed: () {
-                            debugPrint('Join pressed');
-                            Navigator.pushNamed(context, '/name-entry');
-                          },
-                        ),
-                      ],
-                    ),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SocialityActionButton(
+                    text: 'Create',
+                    icon: Icons.link,
+                    onPressed: () => Navigator.pushNamed(context, '/host-name-entry'),
                   ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 12),
-                  child: Text(
-                    'Tweakeract Sociality 🦋',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.black54,
-                    ),
+                  const SizedBox(height: 56),
+                  SocialityActionButton(
+                    text: 'Join',
+                    icon: Icons.add,
+                    onPressed: () => Navigator.pushNamed(context, '/name-entry'),
                   ),
-                ),
-              ],
+                ],
+              ),
+            ),
+          ),
+
+          // 3. Static Footer Logo
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.all(30.0), 
+              child: Image.asset(
+                'assets/images/innergames logo.png',
+                width: 100,
+              ),
             ),
           ),
         ],
