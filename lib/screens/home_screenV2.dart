@@ -1,69 +1,116 @@
 import 'package:flutter/material.dart';
 import '../theme/app_themeRyan.dart';
 import '../widgets/custom_app_bar.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
-class HomeScreenv2 extends StatelessWidget {
+class HomeScreenv2 extends StatefulWidget {
   const HomeScreenv2({super.key});
+
+  @override
+  State<HomeScreenv2> createState() => _HomeScreenv2State();
+}
+
+class _HomeScreenv2State extends State<HomeScreenv2> {
+  bool _startBackgroundEffect = false;
+  bool _showContent = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _startSequence();
+  }
+
+  void _startSequence() async {
+    // 1. Wait for page slide-down to finish
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (!mounted) return;
+    setState(() => _startBackgroundEffect = true);
+
+    // 2. Short delay so logo starts fading before buttons arrive
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
+    setState(() => _showContent = true);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),
-      // 1. Custom Top Navigation Bar
       appBar: const CustomAppBar(showBackButton: false),
       body: Stack(
         alignment: Alignment.center,
         children: [
-          // 2. Background Logo (Watermark)
-          Opacity(
-            opacity: 0.1,
-            child: Image.asset('assets/images/logo.png'),
-          ),
-
-          // 3. Main Menu Buttons
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              FilledButton.icon(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/create-join');
-                },
-                icon: const Icon(Icons.play_arrow),
-                label: const Text('Play'),
-                style: AppTheme.primaryButton,
-              ),
-              const SizedBox(height: 16),
-
-              FilledButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.qr_code_scanner),
-                label: const Text('Scan'),
-                style: AppTheme.primaryButton,
-              ),
-              const SizedBox(height: 16),
-
-              FilledButton.icon(
-                onPressed: () => Navigator.pushNamed(context, '/settings'),
-                icon: const Icon(Icons.settings),
-                label: const Text('Settings'),
-                style: AppTheme.primaryButton,
-              ),
-            ],
-          ),
-
-          // 4. Footer Logo
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.all(30.0),
-              child: Image.asset(
-                'assets/images/innergames logo.png',
-                width: 100,
+          // 1. LOGO WATERMARK EFFECT
+          Positioned.fill(
+            child: Center(
+              child: Hero(
+                tag: 'mainLogo',
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 1200),
+                  opacity: _startBackgroundEffect ? 0.1 : 1.0,
+                  child: Image.asset('assets/images/logo.png'),
+                ),
               ),
             ),
           ),
+
+          // 2. MAIN BUTTONS
+          if (_showContent)
+            AnimationLimiter(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: AnimationConfiguration.toStaggeredList(
+                  duration: const Duration(milliseconds: 800),
+                  childAnimationBuilder: (widget) => SlideAnimation(
+                    verticalOffset: 100.0,
+                    child: FadeInAnimation(child: widget),
+                  ),
+                  children: [
+                    _buildMenuButton(context, 'Play', Icons.play_arrow, '/create-join'),
+                    const SizedBox(height: 16),
+                    _buildMenuButton(context, 'Scan', Icons.qr_code_scanner, null),
+                    const SizedBox(height: 16),
+                    _buildMenuButton(context, 'Settings', Icons.settings, '/settings'),
+                  ],
+                ),
+              ),
+            ),
+
+          // 3. FOOTER LOGO
+          if (_showContent)
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.all(30.0),
+                child: AnimationLimiter(
+                  child: AnimationConfiguration.synchronized(
+                    duration: const Duration(milliseconds: 800),
+                    child: SlideAnimation(
+                      verticalOffset: 80.0,
+                      child: FadeInAnimation(
+                        child: Image.asset(
+                          'assets/images/innergames logo.png',
+                          width: 100,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
+    );
+  }
+
+  Widget _buildMenuButton(
+      BuildContext context, String label, IconData icon, String? route) {
+    return FilledButton.icon(
+      onPressed: () => route != null ? Navigator.pushNamed(context, route) : null,
+      icon: Icon(icon),
+      label: Text(label),
+      style: AppTheme.primaryButton,
     );
   }
 }
