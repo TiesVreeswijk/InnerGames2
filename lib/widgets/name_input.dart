@@ -4,12 +4,14 @@ class NameInputWidget extends StatelessWidget {
   final String title;
   final TextEditingController controller;
   final VoidCallback onSubmitted;
+  final TextStyle? titleStyle;
 
   const NameInputWidget({
     Key? key,
     required this.title,
     required this.controller,
     required this.onSubmitted,
+    this.titleStyle,
   }) : super(key: key);
 
   @override
@@ -32,11 +34,12 @@ class NameInputWidget extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 0, 0, 0),
-              ),
+              style: titleStyle ?? // use provided style or fallback to default (Using ryan theme or fallback)
+                  const TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
             ),
             const SizedBox(height: 93),
             TextField(
