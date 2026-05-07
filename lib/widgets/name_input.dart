@@ -59,7 +59,7 @@ class _NameInputWidgetState extends State<NameInputWidget> {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 70, 24, 24),
+        padding: const EdgeInsets.fromLTRB(24, 40, 24, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

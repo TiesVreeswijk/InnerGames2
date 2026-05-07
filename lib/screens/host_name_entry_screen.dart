@@ -72,9 +72,7 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
       resizeToAvoidBottomInset: true,
       appBar: const CustomAppBar(),
       body: Stack(
-        alignment: Alignment.center,
         children: [
-          
           SafeArea(
             child: NameInputWidget(
               title: 'Create a new session',
