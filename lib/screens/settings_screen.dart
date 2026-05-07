@@ -32,7 +32,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const _SectionTitle(title: 'Taal'),
+              const SettingsSectionTitle(title: 'Taal'),
               const SizedBox(height: 16),
               SettingsInlineRadioGroup<String>(
                 groupValue: _selectedLanguage,
@@ -115,6 +115,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         value: _textSize,
                         min: 0.8,
                         max: 1.4,
+                        divisions: 6,
+                        label: '${(_textSize * 100).round()}%',
                         onChanged: (value) {
                           setState(() => _textSize = value);
                         },
@@ -129,6 +131,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Voorbeeld tekstgrootte',
+                style: TextStyle(
+                  fontSize: 18 * _textSize,
+                ),
               ),
               const SizedBox(height: 48),
               Center(
