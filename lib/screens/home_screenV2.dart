@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_themeRyan.dart';
 import '../widgets/custom_app_bar.dart';
+import '../widgets/animated_pop_button_effect.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 class HomeScreenv2 extends StatefulWidget {
@@ -21,12 +22,10 @@ class _HomeScreenv2State extends State<HomeScreenv2> {
   }
 
   void _startSequence() async {
-    // 1. Wait for page slide-down to finish
     await Future.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
     setState(() => _startBackgroundEffect = true);
 
-    // 2. Short delay so logo starts fading before buttons arrive
     await Future.delayed(const Duration(milliseconds: 300));
     if (!mounted) return;
     setState(() => _showContent = true);
@@ -106,11 +105,19 @@ class _HomeScreenv2State extends State<HomeScreenv2> {
 
   Widget _buildMenuButton(
       BuildContext context, String label, IconData icon, String? route) {
-    return FilledButton.icon(
-      onPressed: () => route != null ? Navigator.pushNamed(context, route) : null,
-      icon: Icon(icon),
-      label: Text(label),
-      style: AppTheme.primaryButton,
+    return AnimatedPressButton(
+      onPressed: route != null ? () => Navigator.pushNamed(context, route) : null,
+      child: FilledButton.icon(
+        // onPressed is intentionally null here; AnimatedPressButton handles the tap
+        onPressed: null,
+        icon: Icon(icon),
+        label: Text(label),
+        style: AppTheme.primaryButton.copyWith(
+          // Keep the magenta colour even when onPressed is null (disabled state)
+          backgroundColor: WidgetStateProperty.all(AppTheme.primaryMagenta),
+          foregroundColor: WidgetStateProperty.all(Colors.white),
+        ),
+      ),
     );
   }
 }
