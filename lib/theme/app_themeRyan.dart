@@ -9,6 +9,8 @@ class AppTheme {
   static const Color settingsLightPurple = Color(0xFFE9DDFB);
   static const Color settingsDivider = Color(0xFFD9D2E3);
   static const Color settingsMuted = Color(0xFF6A6670);
+  static const Color _darkBlue = Color.fromARGB(255, 44, 62, 126);
+
 
   // Button Style
   static final ButtonStyle primaryButton = FilledButton.styleFrom(
@@ -32,6 +34,13 @@ class AppTheme {
   );
 
   // Text Styles
+  static const TextStyle entryScreenTitle = TextStyle(
+      fontSize: 33,
+      fontWeight: FontWeight.bold,
+      color: _darkBlue, 
+      letterSpacing: -0.5,
+    );
+
   static const TextStyle welcomeTitle = TextStyle(
     fontSize: 28,
     fontWeight: FontWeight.bold,

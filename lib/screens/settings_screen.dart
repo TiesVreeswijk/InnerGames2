@@ -79,6 +79,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       backgroundColor: Colors.white,
       appBar: const CustomAppBar(
         title: 'Settings',
+        showBackButton: false,
       ),
       body: SafeArea(
         child: Column(
