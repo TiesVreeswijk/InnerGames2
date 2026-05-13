@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../models/scenario_data.dart';
+
 
 class CreateLobbyResult {
   final String lobbyId;
@@ -120,11 +122,17 @@ class LobbyService {
     return _firestore.collection('lobbies').doc(lobbyId).snapshots();
   }
 
-  Future<void> startGame(String lobbyId) async {
-    await _firestore.collection('lobbies').doc(lobbyId).update({
-      'status': 'started',
-      'gamePhase': 'started',
-      'startedAt': FieldValue.serverTimestamp(),
-    });
-  }
+Future<void> startGame(String lobbyId) async {
+  // Start met scenario_1
+  await startGameWithScenario(lobbyId, 'scenario_1');
 }
+Future<void> startGameWithScenario(String lobbyId, String firstScenarioId) async {
+  await _firestore.collection('lobbies').doc(lobbyId).update({
+    'status': 'started',
+    'gamePhase': 'story',  // Gewijzigd van 'started' naar 'story'
+    'currentScenarioId': firstScenarioId,  // Nieuwe veld toegevoegd
+    'startedAt': FieldValue.serverTimestamp(),
+  });
+}
+}
+

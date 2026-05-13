@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_app_bar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
 
 class LobbyScreen extends StatefulWidget {
   final bool isHost;
@@ -19,12 +21,13 @@ class LobbyScreen extends StatefulWidget {
 
 class _LobbyScreenState extends State<LobbyScreen> {
   late List<String> _players;
+  StreamSubscription? _lobbyStatusSubscription;
 
   @override
   void initState() {
     super.initState();
     _players = List.from(widget.players);
-    
+
     // TODO: Listen to Firebase for real-time player updates
     // StreamSubscription _playersSubscription = FirebaseService
     //   .listenToPlayers(gameId)
@@ -33,6 +36,32 @@ class _LobbyScreenState extends State<LobbyScreen> {
     //       _players = players;
     //     });
     //   });
+
+    // Listen to lobby status changes
+    // Vervang 'lobbyId' door de juiste lobbyId (moet als prop worden meegegeven)
+    final lobbyId = (widget as dynamic).lobbyId ?? null;
+    if (lobbyId != null) {
+      final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+      _lobbyStatusSubscription = _firestore.collection('lobbies').doc(lobbyId).snapshots().listen((snapshot) {
+        final data = snapshot.data();
+        if (data != null && data['status'] == 'started') {
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, '/game', arguments: {
+              'lobbyId': lobbyId,
+              'gameTitle': widget.gameTitle,
+              'players': _players,
+              'isHost': widget.isHost,
+            });
+          }
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _lobbyStatusSubscription?.cancel();
+    super.dispose();
   }
 
   void _startGame() {
@@ -47,7 +76,17 @@ class _LobbyScreenState extends State<LobbyScreen> {
     }
 
     // TODO: Update game status in Firebase to 'started'
-    Navigator.pushReplacementNamed(context, '/game');
+    final lobbyId = (widget as dynamic).lobbyId ?? null;
+    Navigator.pushReplacementNamed(
+      context,
+      '/game',
+      arguments: {
+        'lobbyId': lobbyId,
+        'gameTitle': widget.gameTitle,
+        'players': _players,
+        'isHost': widget.isHost,
+      },
+    );
   }
 
   @override

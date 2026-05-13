@@ -5,6 +5,7 @@ import '../widgets/lobby_content.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/join_code_panel.dart';
 import '../services/lobby_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LobbyHostScreen extends StatefulWidget {
   final bool isHost;
@@ -33,6 +34,7 @@ class _LobbyHostScreenState extends State<LobbyHostScreen> {
 
   late List<String> _players;
   StreamSubscription<List<String>>? _playersSubscription;
+  StreamSubscription? _lobbyStatusSubscription;
 
   @override
   void initState() {
@@ -51,11 +53,33 @@ class _LobbyHostScreenState extends State<LobbyHostScreen> {
             _players = players;
           });
         });
+    
+    // Listen to lobby status changes
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    _lobbyStatusSubscription = _firestore.collection('lobbies').doc(widget.lobbyId).snapshots().listen((snapshot) {
+      final data = snapshot.data();
+      if (data != null && data['status'] == 'started') {
+        if (mounted) {
+          Navigator.pushReplacementNamed(
+            context,
+            '/game',
+            arguments: {
+              'lobbyId': widget.lobbyId,
+              'pin': widget.pin,
+              'gameTitle': widget.gameTitle,
+              'players': _players,
+              'isHost': true,
+            },
+          );
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
     _playersSubscription?.cancel();
+    _lobbyStatusSubscription?.cancel();
     super.dispose();
   }
 
