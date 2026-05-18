@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'dart:math' as math;
 import '../theme/app_themeRyan.dart';
 
 class NameInputWidget extends StatefulWidget {
@@ -32,7 +33,7 @@ class _NameInputWidgetState extends State<NameInputWidget>
 
     // Initialize shake animation controller
     _shakeController = AnimationController(
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 320),
       vsync: this,
     );
 
@@ -58,17 +59,17 @@ class _NameInputWidgetState extends State<NameInputWidget>
 
   /// Trigger shake animation
   void shake() {
-    _shakeController.forward(from: 0.0);
+    _shakeController.stop();
+    _shakeController.reset();
+    _shakeController.forward();
   }
 
   /// Generate shake offset based on animation progress
   Offset _getShakeOffset(double progress) {
-    const double distance = 10.0;
-    // Create a quick back-and-forth shake motion
-    return Offset(
-      distance * (4 * (0.5 - (progress % 0.5).abs())).clamp(-1, 1),
-      0,
-    );
+    const double distance = 12.0;
+    final double decay = 1.0 - progress;
+    final double wave = math.sin(progress * math.pi * 8);
+    return Offset(distance * wave * decay, 0);
   }
 
   @override
