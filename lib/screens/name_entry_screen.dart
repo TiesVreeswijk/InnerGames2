@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/app_settings_provider.dart';
 import '../widgets/name_input.dart';
 import '../widgets/custom_app_bar.dart';
 import '../theme/app_themeRyan.dart';
@@ -25,12 +28,13 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
   }
 
   void _continue() {
+    final l10n = context.read<AppSettingsProvider>().l10n;
     final name = _nameController.text.trim();
     
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Enter your name'),
+        SnackBar(
+          content: Text(l10n.tr('enter_name')),
           backgroundColor: Colors.red,
         ),
       );
@@ -39,15 +43,15 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
 
     if (name.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('The name must be at least 2 characters long'),
+        SnackBar(
+          content: Text(l10n.tr('name_too_short')),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
 
-    print('Player joining with name: $name, PIN: ${widget.pin}');
+    debugPrint('Player joining with name: $name, PIN: ${widget.pin}');
 
     // Navigate to avatar selection
     Navigator.pushReplacementNamed(
@@ -63,15 +67,18 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.watch<AppSettingsProvider>().l10n;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),
       appBar: const CustomAppBar(),
       body: SafeArea(
         child: NameInputWidget(
           titleStyle: AppTheme.entryScreenTitle,
-          title: 'Join session',
+          title: l10n.tr('join_session_title'),
           controller: _nameController,
           onSubmitted: _continue,
+          hintText: l10n.tr('name_hint'),
         ),
       ),
     );

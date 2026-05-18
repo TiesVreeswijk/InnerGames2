@@ -56,6 +56,17 @@ class AppLocalizations {
     'dialog_body': 'Use {size}% text size across the whole app?',
     'dialog_cancel': 'Cancel',
     'dialog_apply': 'Apply',
+
+    // Session flow
+    'create_session_title': 'Create a new session',
+    'join_session_title': 'Join a new session',
+    'join_game_title': 'Join game',
+    'join_pin_prompt': 'Enter the 4-digit PIN',
+    'join_pin_loading': 'Searching for lobby...',
+    'join_failed': 'Could not join: {error}',
+    'enter_name': 'Enter your name',
+    'name_too_short': 'The name must be at least 2 characters long',
+    'name_hint': 'Name',
   };
 
   // ─── Dutch ────────────────────────────────────────────────────────────────
@@ -91,5 +102,16 @@ class AppLocalizations {
     'dialog_body': 'Gebruik {size}% tekstgrootte in de hele app?',
     'dialog_cancel': 'Annuleer',
     'dialog_apply': 'Toepassen',
+
+    // Session flow
+    'create_session_title': 'Maak een nieuwe sessie aan',
+    'join_session_title': 'Doe mee aan een nieuwe sessie',
+    'join_game_title': 'Deelnemen aan spel',
+    'join_pin_prompt': 'Voer de 4-cijferige PIN in',
+    'join_pin_loading': 'Lobby zoeken...',
+    'join_failed': 'Deelnemen mislukt: {error}',
+    'enter_name': 'Vul je naam in',
+    'name_too_short': 'De naam moet minimaal 2 tekens lang zijn',
+    'name_hint': 'Naam',
   };
 }

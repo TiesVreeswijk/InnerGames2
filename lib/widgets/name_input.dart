@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+
+import '../l10n/app_localizations.dart';
 import '../theme/app_themeRyan.dart';
 
 class NameInputWidget extends StatefulWidget {
@@ -7,6 +9,7 @@ class NameInputWidget extends StatefulWidget {
   final TextEditingController controller;
   final VoidCallback onSubmitted;
   final TextStyle? titleStyle;
+  final String? hintText;
 
   const NameInputWidget({
     Key? key,
@@ -14,6 +17,7 @@ class NameInputWidget extends StatefulWidget {
     required this.controller,
     required this.onSubmitted,
     this.titleStyle,
+    this.hintText,
   }) : super(key: key);
 
   @override
@@ -49,6 +53,9 @@ class _NameInputWidgetState extends State<NameInputWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final locale = Localizations.maybeLocaleOf(context)?.languageCode ?? 'nl';
+    final l10n = AppLocalizations(locale);
+
     return Container(
       decoration: const BoxDecoration(
         image: DecorationImage(
@@ -128,7 +135,7 @@ class _NameInputWidgetState extends State<NameInputWidget> {
                           repeatForever: true,
                           animatedTexts: [
                             TypewriterAnimatedText(
-                              'Name',
+                              widget.hintText ?? l10n.tr('name_hint'),
                               speed:
                                   const Duration(milliseconds: 130),
                               textStyle: TextStyle(

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/app_settings_provider.dart';
 import '../widgets/custom_app_bar.dart';
 import '../services/auth_service.dart';
 import '../services/lobby_service.dart';
@@ -36,6 +39,7 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
 
   Future<void> _validateAndContinue() async {
     if (_pin.length != 4) return;
+    final l10n = context.read<AppSettingsProvider>().l10n;
 
     final routeArgs =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
@@ -91,7 +95,7 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Deelnemen mislukt: $e'),
+          content: Text(l10n.tr('join_failed', {'error': '$e'})),
           backgroundColor: Colors.red,
         ),
       );
@@ -100,6 +104,8 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.watch<AppSettingsProvider>().l10n;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),
       appBar: const CustomAppBar(),
@@ -107,8 +113,8 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
         child: Column(
           children: [
             const SizedBox(height: 40),
-            const Text(
-              'Deelnemen aan spel',
+            Text(
+              l10n.tr('join_game_title'),
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -133,8 +139,8 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
             const SizedBox(height: 24),
             Text(
               _isValidating
-                  ? 'Lobby zoeken...'
-                  : 'Voer de 4-cijferige PIN in',
+                  ? l10n.tr('join_pin_loading')
+                  : l10n.tr('join_pin_prompt'),
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey.shade600,
