@@ -45,6 +45,7 @@ class AppLocalizations {
 
     // Text size section
     'section_text_size': 'Text size',
+    'text_size_reset': 'Reset to 100%',
     'text_size_current': 'Current app size: {size}%',
     'text_size_preview': 'Preview text size',
     'text_size_hint':
@@ -79,6 +80,7 @@ class AppLocalizations {
 
     // Text size section
     'section_text_size': 'Tekstgrootte',
+    'text_size_reset': 'Reset naar 100%',
     'text_size_current': 'Huidige appgrootte: {size}%',
     'text_size_preview': 'Voorbeeld tekstgrootte',
     'text_size_hint':

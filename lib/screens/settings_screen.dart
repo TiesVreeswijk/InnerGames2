@@ -16,6 +16,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  static const double _defaultTextScale = 1.0;
   String _selectedAppearance = 'auto';
   bool _soundEnabled = false;
   bool _hapticEnabled = false;
@@ -24,7 +25,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _previewTextScale = 1.0;
+    _previewTextScale = _defaultTextScale;
   }
 
   @override
@@ -67,6 +68,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } else {
       setState(() => _previewTextScale = appliedValue);
     }
+  }
+
+  void _resetTextScale() {
+    final appSettings = context.read<AppSettingsProvider>();
+    appSettings.setTextScale(_defaultTextScale);
+    setState(() => _previewTextScale = _defaultTextScale);
   }
 
   @override
@@ -166,7 +173,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SettingsDivider(),
                     const SizedBox(height: 18),
 
-                    SettingsSectionTitle(title: l10n.tr('section_text_size')),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SettingsSectionTitle(
+                            title: l10n.tr('section_text_size'),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: (appliedTextScale - _defaultTextScale)
+                                      .abs() <
+                                  0.001 &&
+                              (_previewTextScale - _defaultTextScale).abs() <
+                                  0.001
+                              ? null
+                              : _resetTextScale,
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppTheme.primaryMagenta,
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(l10n.tr('text_size_reset')),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 12),
                     Text(
                       l10n.tr('text_size_current', {
