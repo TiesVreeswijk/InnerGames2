@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tweekracht_sociality/firebase_options.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
- 
+
 // Import ONLY the screens we created that work
 import 'screens/welcome_screen.dart';
 import 'screens/welcome_screenV2.dart';
@@ -24,7 +24,6 @@ import 'screens/lobby_player_screen.dart' as lobby_player;
 
 import 'services/auth_service.dart';
 
-//test2
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -51,7 +50,7 @@ class SocialityApp extends StatelessWidget {
       initialRoute: '/splash',
       onGenerateRoute: (settings) {
         print('🔄 Navigating to: ${settings.name}');
-        
+
         switch (settings.name) {
           case '/':
             return MaterialPageRoute(
@@ -82,12 +81,18 @@ class SocialityApp extends StatelessWidget {
             return MaterialPageRoute(
               builder: (context) => const SettingsScreen(),
             );
-            
+
           case '/ChoosingStories':
+            final args = settings.arguments as Map<String, dynamic>?;
             return MaterialPageRoute(
-              builder: (context) => const ChoosingStoryScreen(),
+              // ✅ FIX: extract args here and pass as constructor params
+              // so ChoosingStoryScreen doesn't need to use ModalRoute
+              builder: (context) => ChoosingStoryScreen(
+                hostName: args?['hostName'] as String?,
+                selectedAvatar: args?['selectedAvatar'] as int?,
+              ),
             );
-            
+
           case '/host-name-entry':
             final args = settings.arguments as Map<String, dynamic>?;
             return MaterialPageRoute(
@@ -95,11 +100,11 @@ class SocialityApp extends StatelessWidget {
                 storyTitle: args?['storyTitle'] as String? ?? 'HET SKATEPARK',
               ),
             );
-            
+
           case '/host-share':
             final args = settings.arguments as Map<String, dynamic>?;
             print('📍 Host share args: $args');
-            
+
             return MaterialPageRoute(
               builder: (context) => HostShareScreen(
                 pin: args?['pin'] as String? ?? '1234',
@@ -107,11 +112,18 @@ class SocialityApp extends StatelessWidget {
                 hostName: args?['hostName'] as String? ?? 'Host',
               ),
             );
-            
+
           case '/join-pin':
-            print('📍 Navigating to join-pin screen');
+            final args = settings.arguments as Map<String, dynamic>?;
+            print('📍 Navigating to join-pin screen, args: $args');
             return MaterialPageRoute(
-              builder: (context) => const JoinPinScreen(),
+              // ✅ FIX: pass args as constructor params so ModalRoute isn't needed
+              builder: (context) => JoinPinScreen(
+                playerName: args?['playerName'] as String?,
+                selectedAvatar: args?['selectedAvatar'] as int?,
+                gameTitle: args?['gameTitle'] as String?,
+                pin: args?['pin'] as String?,
+              ),
             );
 
           case '/create-join':
@@ -131,9 +143,8 @@ class SocialityApp extends StatelessWidget {
                 pin: args?['pin'] as String? ?? '1234',
               ),
             );
-            
+
           case '/join-qr':
-            // Placeholder for now - you'll add this later
             return MaterialPageRoute(
               builder: (context) => Scaffold(
                 backgroundColor: const Color(0xFFF5E6D3),
@@ -192,24 +203,24 @@ class SocialityApp extends StatelessWidget {
                 players: (args['players'] as List<dynamic>?)?.cast<String>() ?? [],
               ),
             );
-            
+
           case '/lobby_host':
             final args = settings.arguments as Map<String, dynamic>?;
             print('📍 Lobby host args: $args');
 
-            
-            
             return MaterialPageRoute(
               builder: (context) => lobby_host.LobbyHostScreen(
-                isHost: args?['isHost'] as bool,
-                gameTitle: args?['gameTitle'] as String,
-                pin: args?['pin'] as String,
-                lobbyId: args?['lobbyId'] as String,
+                isHost: args?['isHost'] as bool? ?? true,
+                gameTitle: args?['gameTitle'] as String? ?? 'HET SKATEPARK',
+                pin: args?['pin'] as String? ?? '',
+                lobbyId: args?['lobbyId'] as String? ?? '',
                 players: List<String>.from(args?['players'] ?? []),
                 hostName: args?['hostName'] as String?,
+                // ✅ FIX: pass selectedAvatar through to the screen
+                selectedAvatar: args?['selectedAvatar'] as int?,
               ),
             );
-            
+
           case '/story':
             return MaterialPageRoute(
               builder: (context) => const StoryScreen(),
@@ -257,8 +268,7 @@ class SocialityApp extends StatelessWidget {
                 ),
               ),
             );
-            
-            
+
           default:
             print('❌ Route not found: ${settings.name}');
             return MaterialPageRoute(

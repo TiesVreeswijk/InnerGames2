@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 class CreateLobbyResult {
   final String lobbyId;
@@ -126,5 +127,56 @@ class LobbyService {
       'gamePhase': 'started',
       'startedAt': FieldValue.serverTimestamp(),
     });
+  }
+
+  // ✅ NEW: remove a player from the lobby's players subcollection
+  Future<void> removePlayer(String lobbyId) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        debugPrint('removePlayer: no current user!');
+        return;
+      }
+
+      debugPrint('removePlayer: deleting uid=${user.uid} from lobby=$lobbyId');
+
+      await _firestore
+          .collection('lobbies')
+          .doc(lobbyId)
+          .collection('players')
+          .doc(user.uid)
+          .delete();
+
+      debugPrint('removePlayer: delete successful');
+    } catch (e) {
+      debugPrint('removePlayer error: $e');
+    }
+  }
+
+  // ✅ called when host backs out before game starts — deletes the lobby
+  Future<void> closeLobby(String lobbyId) async {
+    try {
+      await _firestore.collection('lobbies').doc(lobbyId).delete();
+      debugPrint('closeLobby: deleted lobby $lobbyId');
+    } catch (e) {
+      debugPrint('closeLobby error (ignored): $e');
+    }
+  }
+
+  // ✅ called when game is fully finished — marks lobby as finished
+  // so all clients know the game is over, then deletes the document
+  Future<void> finishAndDeleteLobby(String lobbyId) async {
+    try {
+      await _firestore.collection('lobbies').doc(lobbyId).update({
+        'status': 'finished',
+        'finishedAt': FieldValue.serverTimestamp(),
+      });
+      // small delay so all clients can react to 'finished' status
+      await Future.delayed(const Duration(seconds: 3));
+      await _firestore.collection('lobbies').doc(lobbyId).delete();
+      debugPrint('finishAndDeleteLobby: deleted lobby $lobbyId');
+    } catch (e) {
+      debugPrint('finishAndDeleteLobby error (ignored): $e');
+    }
   }
 }

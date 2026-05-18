@@ -41,7 +41,6 @@ class _LobbyScreenState extends State<LobbyScreen> {
     _playersSubscription =
         _lobbyService.listenToPlayerNames(widget.lobbyId).listen((players) {
           if (!mounted) return;
-
           setState(() {
             _players = players;
           });
@@ -50,6 +49,12 @@ class _LobbyScreenState extends State<LobbyScreen> {
     _lobbySubscription = _lobbyService.listenToLobby(widget.lobbyId).listen(
           (snapshot) {
         if (!mounted) return;
+
+        // ✅ lobby was deleted (host left or closed it)
+        if (!snapshot.exists) {
+          _showLobbyClosedAndGoHome();
+          return;
+        }
 
         final data = snapshot.data();
         if (data == null) return;
@@ -70,7 +75,53 @@ class _LobbyScreenState extends State<LobbyScreen> {
             },
           );
         }
+
+        // keep this as fallback in case status is set before delete
+        if (status == 'closed') {
+          _showLobbyClosedAndGoHome();
+        }
       },
+    );
+  }
+
+  // ✅ NEW: remove player from Firestore and go back home
+  Future<void> _leaveAndGoHome() async {
+    _playersSubscription?.cancel();
+    _lobbySubscription?.cancel();
+    await _lobbyService.removePlayer(widget.lobbyId);
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      '/home',
+          (route) => false,
+    );
+  }
+
+  void _showLobbyClosedAndGoHome() {
+    // Cancel subscriptions so the listener doesn't fire again
+    _playersSubscription?.cancel();
+    _lobbySubscription?.cancel();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Lobby gesloten'),
+        content: const Text('De host heeft de lobby gesloten.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // close dialog
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/home',
+                    (route) => false,
+              );
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -83,14 +134,24 @@ class _LobbyScreenState extends State<LobbyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      appBar: const CustomAppBar(),
-      body: SafeArea(
-        child: LobbyContent(
-          isHost: widget.isHost,
-          gameTitle: widget.gameTitle,
-          players: _players,
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (!didPop) {
+          await _leaveAndGoHome();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        appBar: CustomAppBar(
+          onBackPressed: _leaveAndGoHome,
+        ),
+        body: SafeArea(
+          child: LobbyContent(
+            isHost: widget.isHost,
+            gameTitle: widget.gameTitle,
+            players: _players,
+          ),
         ),
       ),
     );

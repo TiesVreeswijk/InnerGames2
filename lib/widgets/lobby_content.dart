@@ -4,13 +4,30 @@ class LobbyContent extends StatelessWidget {
   final bool isHost;
   final String gameTitle;
   final List<String> players;
+  final String? hostName;       // ✅ FIX: added hostName
+  final int? selectedAvatar;    // ✅ FIX: added selectedAvatar
 
   const LobbyContent({
     Key? key,
     required this.isHost,
     required this.gameTitle,
     required this.players,
+    this.hostName,
+    this.selectedAvatar,
   }) : super(key: key);
+
+  // ✅ FIX: matches AvatarData.getDefaultAvatars() in avatar_select.dart
+  static const List<String> _defaultAvatars = [
+    'assets/images/3d_avatar_1.png',
+    'assets/images/3d_avatar_2.png',
+    'assets/images/3d_avatar_3.png',
+    'assets/images/3d_avatar_4.png',
+    'assets/images/3d_avatar_5.png',
+    'assets/images/3d_avatar_6.png',
+    'assets/images/3d_avatar_7.png',
+    'assets/images/3d_avatar_8.png',
+    'assets/images/3d_avatar_9.png',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -110,23 +127,25 @@ class LobbyContent extends StatelessWidget {
           Icon(
             Icons.people_outline,
             size: 80,
-            color: Colors.white.withOpacity(0.5),
+            color: Colors.grey.withOpacity(0.5),
           ),
           const SizedBox(height: 16),
           Text(
             isHost ? 'Wait for players to join...' : 'Connecting...',
             style: TextStyle(
               fontSize: 20,
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.grey.withOpacity(0.7),
               fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            isHost ? 'Share the PIN with others' : 'You will join the lobby shortly',
+            isHost
+                ? 'Share the PIN with others'
+                : 'You will join the lobby shortly',
             style: TextStyle(
               fontSize: 14,
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.grey.withOpacity(0.5),
             ),
           ),
         ],
@@ -145,10 +164,16 @@ class LobbyContent extends StatelessWidget {
       ),
       itemCount: players.length,
       itemBuilder: (context, index) {
-        final isHostPlayer = isHost && index == 0;
-        final avatarAssetPath = _avatarAssetForPlayer(index);
+        final playerName = players[index];
+
+        // ✅ FIX: identify host by name, not by index 0
+        final isHostPlayer = playerName == hostName;
+
+        // ✅ FIX: use real selected avatar for host; fallback for others
+        final avatarAssetPath = _avatarAssetForPlayer(index, isHostPlayer);
+
         final playerBoxColor =
-            isHostPlayer ? const Color(0xFFF18F02) : const Color(0xFFE4007D);
+        isHostPlayer ? const Color(0xFFF18F02) : const Color(0xFFE4007D);
 
         return Stack(
           clipBehavior: Clip.none,
@@ -171,7 +196,7 @@ class LobbyContent extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    players[index],
+                    playerName,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -187,34 +212,29 @@ class LobbyContent extends StatelessWidget {
             Positioned(
               left: 0,
               top: -2,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 46,
-                    height: 46,
-                    padding: const EdgeInsets.all(3),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        avatarAssetPath,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: const Color(0xFFF2F2F2),
-                            child: const Icon(
-                              Icons.person,
-                              color: Color(0xFF2C3E7E),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
+              child: Container(
+                width: 46,
+                height: 46,
+                padding: const EdgeInsets.all(3),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: ClipOval(
+                  child: Image.asset(
+                    avatarAssetPath,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: const Color(0xFFF2F2F2),
+                        child: const Icon(
+                          Icons.person,
+                          color: Color(0xFF2C3E7E),
+                        ),
+                      );
+                    },
                   ),
-                ],
+                ),
               ),
             ),
           ],
@@ -223,20 +243,15 @@ class LobbyContent extends StatelessWidget {
     );
   }
 
-  String _avatarAssetForPlayer(int index) {
-    const avatarAssets = [
-      'assets/images/logo.png',
-      'assets/images/innergames logo.png',
-      'assets/images/han logo.png',
-      'assets/images/fontys logo.png',
-      'assets/images/skatepark_story.png',
-      'assets/images/background.png',
-    ];
-
-    if (index < avatarAssets.length) {
-      return avatarAssets[index];
+  String _avatarAssetForPlayer(int index, bool isHostPlayer) {
+    // ✅ FIX: host gets their chosen avatar; others cycle through defaults
+    if (isHostPlayer && selectedAvatar != null) {
+      if (selectedAvatar! >= 0 && selectedAvatar! < _defaultAvatars.length) {
+        return _defaultAvatars[selectedAvatar!];
+      }
     }
 
-    return 'assets/images/logo.png';
+    // Fallback: cycle through the list for non-host players
+    return _defaultAvatars[index % _defaultAvatars.length];
   }
 }
