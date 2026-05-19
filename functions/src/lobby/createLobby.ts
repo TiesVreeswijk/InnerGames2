@@ -103,7 +103,7 @@ export const createLobby2 = onCall(
         hostUid: uid,
         status: "waiting",
         gamePhase: "lobby",
-        maxPlayers: 6,
+        maxPlayers: 20,
         playerCount: 1,
         allReady: false,
         createdAt: FieldValue.serverTimestamp(),

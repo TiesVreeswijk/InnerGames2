@@ -4,7 +4,19 @@ import '../services/auth_service.dart';
 import '../services/lobby_service.dart';
 
 class JoinPinScreen extends StatefulWidget {
-  const JoinPinScreen({super.key});
+  // ✅ FIX: accept values as constructor params instead of reading ModalRoute
+  final String? playerName;
+  final int? selectedAvatar;
+  final String? gameTitle;
+  final String? pin;
+
+  const JoinPinScreen({
+    super.key,
+    this.playerName,
+    this.selectedAvatar,
+    this.gameTitle,
+    this.pin,
+  });
 
   @override
   State<JoinPinScreen> createState() => _JoinPinScreenState();
@@ -37,16 +49,10 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
   Future<void> _validateAndContinue() async {
     if (_pin.length != 4) return;
 
-    final routeArgs =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
-            {};
-
-    final String playerName = routeArgs['playerName'] ??
-        routeArgs['hostName'] ??
-        routeArgs['name'] ??
-        'Player';
-
-    final selectedAvatar = routeArgs['selectedAvatar'];
+    // ✅ FIX: use constructor params directly — no more ModalRoute needed
+    final String playerName = widget.playerName ?? 'Player';
+    final int? selectedAvatar = widget.selectedAvatar;
+    final String gameTitle = widget.gameTitle ?? 'Lobby';
 
     setState(() {
       _isValidating = true;
@@ -60,6 +66,7 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
 
       debugPrint('Joining with uid: ${user.uid}');
       debugPrint('Joining with pin: $_pin');
+      debugPrint('Joining as: $playerName, avatar: $selectedAvatar');
 
       final result = await lobbyService.joinLobby(
         playerName: playerName,
@@ -75,7 +82,7 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
           'lobbyId': result.lobbyId,
           'joinCode': result.joinCode,
           'pin': result.joinCode,
-          'gameTitle': routeArgs['gameTitle'] ?? 'Lobby',
+          'gameTitle': gameTitle,
           'playerName': playerName,
           'selectedAvatar': selectedAvatar,
           'isHost': false,

@@ -14,6 +14,7 @@ class LobbyHostScreen extends StatefulWidget {
   final String lobbyId;
   final List<String> players;
   final String? hostName;
+  final int? selectedAvatar; // ✅ FIX: added selectedAvatar
 
   const LobbyHostScreen({
     Key? key,
@@ -23,6 +24,7 @@ class LobbyHostScreen extends StatefulWidget {
     required this.lobbyId,
     this.players = const [],
     this.hostName,
+    this.selectedAvatar, // ✅ FIX: added selectedAvatar
   }) : super(key: key);
 
   @override
@@ -34,23 +36,40 @@ class _LobbyHostScreenState extends State<LobbyHostScreen> {
 
   late List<String> _players;
   StreamSubscription<List<String>>? _playersSubscription;
+  bool _gameStarted = false; // ✅ prevents closeLobby firing when game starts
   StreamSubscription? _lobbyStatusSubscription;
 
   @override
   void initState() {
     super.initState();
 
-    // Tijdelijke startwaarde, zodat de UI niet leeg is voordat Firebase reageert.
-    _players = List.from(widget.players);
+    // ✅ FIX: seed with hostName if players list is empty, so the host
+    // always sees their own name immediately before Firebase responds.
+    if (widget.players.isNotEmpty) {
+      _players = List.from(widget.players);
+    } else if (widget.hostName != null) {
+      _players = [widget.hostName!];
+    } else {
+      _players = [];
+    }
 
-    // Dit is nu de echte bron van waarheid.
-    // Zodra een speler joined in Firestore, update de host-lobby automatisch.
     _playersSubscription =
         _lobbyService.listenToPlayerNames(widget.lobbyId).listen((players) {
           if (!mounted) return;
-
           setState(() {
-            _players = players;
+            // ✅ FIX: if the cloud function saved a placeholder instead of
+            // the real name, replace it with the name the host actually typed.
+            if (widget.hostName != null && players.isNotEmpty) {
+              final firstIsPlaceholder =
+                  players[0] == 'Host' || players[0] == 'Unknown';
+              if (firstIsPlaceholder) {
+                _players = [widget.hostName!, ...players.skip(1)];
+              } else {
+                _players = players;
+              }
+            } else {
+              _players = players;
+            }
           });
         });
     
@@ -76,9 +95,20 @@ class _LobbyHostScreenState extends State<LobbyHostScreen> {
     });
   }
 
+  // ✅ NEW: close the lobby when the host backs out
+  Future<void> _closeLobbyAndPop() async {
+    await _lobbyService.closeLobby(widget.lobbyId);
+    if (!mounted) return;
+    Navigator.pop(context);
+  }
+
   @override
   void dispose() {
     _playersSubscription?.cancel();
+    // ✅ only close lobby if host left without starting the game
+    if (!_gameStarted) {
+      _lobbyService.closeLobby(widget.lobbyId);
+    }
     _lobbyStatusSubscription?.cancel();
     super.dispose();
   }
@@ -109,9 +139,7 @@ class _LobbyHostScreenState extends State<LobbyHostScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildBottomSheetHandle(),
-
                 const SizedBox(height: 20),
-
                 JoinCodePanel(
                   pin: widget.pin,
                   showCloseButton: true,
@@ -148,6 +176,9 @@ class _LobbyHostScreenState extends State<LobbyHostScreen> {
       return;
     }
 
+    // ✅ set flag FIRST before any await or navigation so dispose() sees it
+    _gameStarted = true;
+
     try {
       await _lobbyService.startGame(widget.lobbyId);
 
@@ -178,25 +209,37 @@ class _LobbyHostScreenState extends State<LobbyHostScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: const CustomAppBar(),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildJoinCodeButton(),
-
-            Expanded(
-              child: LobbyContent(
-                isHost: widget.isHost,
-                gameTitle: widget.gameTitle,
-                players: _players,
-              ),
-            ),
-          ],
+    // ✅ NEW: PopScope intercepts the back button so we can close the lobby first
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (!didPop) {
+          await _closeLobbyAndPop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: CustomAppBar(
+          onBackPressed: _closeLobbyAndPop,
         ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildJoinCodeButton(),
+              Expanded(
+                child: LobbyContent(
+                  isHost: widget.isHost,
+                  gameTitle: widget.gameTitle,
+                  players: _players,
+                  hostName: widget.hostName,
+                  selectedAvatar: widget.selectedAvatar,
+                ),
+              ),
+            ],
+          ),
+        ),
+        bottomNavigationBar: _buildStartButton(),
       ),
-      bottomNavigationBar: _buildStartButton(),
     );
   }
 
@@ -274,38 +317,6 @@ class _LobbyHostScreenState extends State<LobbyHostScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-// Test runner - allows running this file directly
-void main() {
-  runApp(const _LobbyScreenTestApp());
-}
-
-class _LobbyScreenTestApp extends StatelessWidget {
-  const _LobbyScreenTestApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: LobbyHostScreen(
-        isHost: true,
-        gameTitle: 'HET SKATEPARK',
-        pin: '3786',
-        lobbyId: 'test-lobby-id',
-        hostName: 'Host',
-        players: [
-          'Host',
-          'Tobias',
-          'Jean Pierre',
-          'Lucas',
-          'Bob',
-          'Yannick',
-          'Quan del Dingel',
-        ],
       ),
     );
   }
