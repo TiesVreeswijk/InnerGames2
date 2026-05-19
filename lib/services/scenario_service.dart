@@ -31,6 +31,26 @@ class ScenarioService {
     return await getScenario(scenarioId);
   }
 
+  Future<List<ScenarioData>> getAllScenarios() async {
+  final scenarioDocs = await _firestore.collection('scenarios').get();
+  List<ScenarioData> scenarios = [];
+  for (final doc in scenarioDocs.docs) {
+    // Laad de antwoorden uit de subcollectie
+    final answersSnapshot = await _firestore
+        .collection('scenarios')
+        .doc(doc.id)
+        .collection('answers')
+        .get();
+
+    final answers = answersSnapshot.docs
+        .map((answerDoc) => AnswerData.fromFirestore(answerDoc.id, answerDoc.data()))
+        .toList();
+
+    scenarios.add(ScenarioData.fromFirestore(doc.id, doc.data(), answers));
+  }
+  return scenarios;
+}
+
   Future<ScenarioData?> getScenario(String scenarioId) async {
     final scenarioDoc = await _firestore.collection('scenarios').doc(scenarioId).get();
 
