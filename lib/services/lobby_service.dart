@@ -174,11 +174,12 @@ class LobbyService {
       debugPrint('finishAndDeleteLobby error (ignored): $e');
     }
   }
-}
+
 Future<void> startGame(String lobbyId) async {
   // Start met scenario_1
   await startGameWithScenario(lobbyId, 'scenario_1');
 }
+
 Future<void> startGameWithScenario(String lobbyId, String firstScenarioId) async {
   await _firestore.collection('lobbies').doc(lobbyId).update({
     'status': 'started',
@@ -188,4 +189,3 @@ Future<void> startGameWithScenario(String lobbyId, String firstScenarioId) async
   });
 }
 }
-

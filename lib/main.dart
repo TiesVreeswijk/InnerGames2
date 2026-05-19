@@ -4,7 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 // Import ONLY the screens we created that work
 
 import 'package:provider/provider.dart';
- 
+
 // Import ONLY the screens we created that work
 import 'screens/Choosing_story.dart';
 import 'screens/welcome_screenV2.dart';
@@ -66,7 +66,7 @@ class SocialityApp extends StatelessWidget {
             initialRoute: '/splash',
             onGenerateRoute: (settings) {
               print('🔄 Navigating to: ${settings.name}');
-        
+
               switch (settings.name) {
                 case '/':
                   return MaterialPageRoute(
@@ -287,23 +287,13 @@ class SocialityApp extends StatelessWidget {
               ),
             );
 
-          default:
-            print('❌ Route not found: ${settings.name}');
-            return MaterialPageRoute(
-              builder: (context) => Scaffold(
-                appBar: AppBar(
-                  title: const Text('Not Found'),
-                  backgroundColor: Colors.white,
-                ),
-                body: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Route "${settings.name}" not found',
-                        style: const TextStyle(fontSize: 18),
+                default:
+                  print('❌ Route not found: ${settings.name}');
+                  return MaterialPageRoute(
+                    builder: (context) => Scaffold(
+                      appBar: AppBar(
+                        title: const Text('Not Found'),
+                        backgroundColor: Colors.white,
                       ),
                       body: Center(
                         child: Column(
@@ -332,7 +322,8 @@ class SocialityApp extends StatelessWidget {
             },
           );
         },
-      ),
+      )
     );
   }
 }
+

@@ -55,8 +55,7 @@ class _ChoiceCardState extends State<ChoiceCard> {
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
-               {
+              Navigator.of(context).pop();{
                 _showScenarioSelectSheet();
               }
             },
@@ -107,6 +106,11 @@ class _ChoiceCardState extends State<ChoiceCard> {
                               orElse: () => ChoiceData(text: scenario.title, nextCardId: scenario.id),
                             );
                             widget.onChoiceSelected!(choice);
+                          }
+                          // Controleer of het gekozen scenario een eindscenario is (alle antwoorden hebben lege nextScenarioId)
+                          final isEndScenario = scenario.answers.isNotEmpty && scenario.answers.every((a) => a.nextScenarioId == null);
+                          if (isEndScenario && widget.onLostLifesChanged != null) {
+                            widget.onLostLifesChanged!(widget.lostLifes + 1);
                           }
                         },
                       );
