@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/name_input.dart';
 import '../widgets/custom_app_bar.dart';
+import '../theme/app_themeRyan.dart';
 
 class NameEntryScreen extends StatefulWidget {
   final String pin;
@@ -67,6 +68,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
       appBar: const CustomAppBar(),
       body: SafeArea(
         child: NameInputWidget(
+          titleStyle: AppTheme.entryScreenTitle,
           title: 'Join session',
           controller: _nameController,
           onSubmitted: _continue,

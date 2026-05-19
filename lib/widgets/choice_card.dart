@@ -19,6 +19,7 @@ class ChoiceCard extends StatefulWidget {
 
 class _ChoiceCardState extends State<ChoiceCard> {
   int? _selectedIndex;
+  int? _confirmedIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -43,17 +44,23 @@ class _ChoiceCardState extends State<ChoiceCard> {
             ),
           ),
           const SizedBox(height: 12),
-          ...widget.choices.asMap().entries.map( // create a button for each choice, using the index to determine if it's selected and to pass the correct choice data back to the parent widget when tapped
+          ...widget.choices.asMap().entries.map(
             (entry) => _ChoiceButton(
               choice: entry.value,
               selected: _selectedIndex == entry.key,
               isLocked: widget.isLocked,
               onTap: () {
-                if (widget.isLocked) {
-                  return;
+                if (_selectedIndex == entry.key) {
+                  // Tweede klik, bevestig keuze, ook als locked
+                  setState(() => _confirmedIndex = entry.key);
+                  widget.onChoiceSelected?.call(entry.value);
+                } else {
+                  // Eerste klik, alleen selecteren
+                  setState(() {
+                    _selectedIndex = entry.key;
+                    _confirmedIndex = null;
+                  });
                 }
-                setState(() => _selectedIndex = entry.key);
-                widget.onChoiceSelected?.call(entry.value);
               },
             ),
           ),
@@ -79,7 +86,7 @@ class _ChoiceButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: isLocked ? null : onTap,
+      onTap: onTap,
       child: Container(
         width: double.infinity,
         margin: const EdgeInsets.only(bottom: 10),

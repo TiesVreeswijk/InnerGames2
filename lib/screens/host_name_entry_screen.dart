@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../widgets/name_input.dart';
 import '../widgets/custom_app_bar.dart';
+import '../theme/app_themeRyan.dart';
+
 
 class HostNameEntryScreen extends StatefulWidget {
   final String storyTitle;
@@ -70,12 +72,11 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
       resizeToAvoidBottomInset: true,
       appBar: const CustomAppBar(),
       body: Stack(
-        alignment: Alignment.center,
         children: [
-          
           SafeArea(
             child: NameInputWidget(
               title: 'Create a new session',
+              titleStyle: AppTheme.entryScreenTitle,
               controller: _nameController,
               onSubmitted: _createGame,
             ),

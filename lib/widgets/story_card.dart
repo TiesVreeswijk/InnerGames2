@@ -118,12 +118,23 @@ class _StoryCardState extends State<StoryCard> { // this state will manage the t
     return Stack(
       fit: StackFit.expand,
       children: [
-        Image.asset(
-          widget.data.imageAsset,
-          fit: BoxFit.cover,
-          width: double.infinity,
-          height: double.infinity,
-        ),
+        if (widget.data.imageAsset.isNotEmpty && widget.data.imageAsset.startsWith('http'))
+          Image.network(
+            widget.data.imageAsset,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+            errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image)),
+          )
+        else if (widget.data.imageAsset.isNotEmpty)
+          Image.asset(
+            widget.data.imageAsset,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          )
+        else
+          const Center(child: Icon(Icons.image_not_supported)),
         // Dark gradient
         const DecoratedBox(
           decoration: BoxDecoration(
