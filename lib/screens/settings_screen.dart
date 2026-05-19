@@ -1,3 +1,5 @@
+// lib/screens/settings_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -14,7 +16,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  String _selectedLanguage = 'nl';
+  static const double _defaultTextScale = 1.0;
   String _selectedAppearance = 'auto';
   bool _soundEnabled = false;
   bool _hapticEnabled = false;
@@ -23,7 +25,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _previewTextScale = 1.0;
+    _previewTextScale = _defaultTextScale;
   }
 
   @override
@@ -36,33 +38,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final appSettings = context.read<AppSettingsProvider>();
     final appliedValue = appSettings.textScale;
 
-    if ((value - appliedValue).abs() < 0.001) {
-      return;
-    }
+    if ((value - appliedValue).abs() < 0.001) return;
+
+    final l10n = appSettings.l10n;
+    final sizeStr = (value * 100).round().toString();
 
     final shouldApply = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Apply text size?'),
-        content: Text(
-          'Use ${(value * 100).round()}% text size across the whole app?',
-        ),
+        title: Text(l10n.tr('dialog_title')),
+        content: Text(l10n.tr('dialog_body', {'size': sizeStr})),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.tr('dialog_cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Apply'),
+            child: Text(l10n.tr('dialog_apply')),
           ),
         ],
       ),
     );
 
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
 
     if (shouldApply == true) {
       appSettings.setTextScale(value);
@@ -71,15 +70,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  void _resetTextScale() {
+    final appSettings = context.read<AppSettingsProvider>();
+    appSettings.setTextScale(_defaultTextScale);
+    setState(() => _previewTextScale = _defaultTextScale);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final appliedTextScale = context.watch<AppSettingsProvider>().textScale;
+    final appSettings = context.watch<AppSettingsProvider>();
+    final l10n = appSettings.l10n;
+    final appliedTextScale = appSettings.textScale;
+    final selectedLanguage = appSettings.locale;
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const CustomAppBar(
-        title: 'Settings',
-        showBackButton: false,
+      appBar: CustomAppBar(
+        title: l10n.tr('settings_title'),
+        showBackButton: Navigator.of(context).canPop(),
       ),
       body: SafeArea(
         child: Column(
@@ -90,30 +98,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SettingsSectionTitle(title: 'Taal'),
+                    SettingsSectionTitle(title: l10n.tr('section_language')),
                     const SizedBox(height: 16),
                     SettingsInlineRadioGroup<String>(
-                      groupValue: _selectedLanguage,
-                      options: const [
-                        SettingsOption(label: 'Nederlands', value: 'nl'),
-                        SettingsOption(label: 'English', value: 'en'),
+                      groupValue: selectedLanguage,
+                      options: [
+                        SettingsOption(
+                          label: l10n.tr('lang_dutch'),
+                          value: 'nl',
+                        ),
+                        SettingsOption(
+                          label: l10n.tr('lang_english'),
+                          value: 'en',
+                        ),
                       ],
                       onChanged: (value) {
-                        setState(() => _selectedLanguage = value);
+                        // Switching language rebuilds the whole screen via
+                        // notifyListeners() in AppSettingsProvider.
+                        appSettings.setLocale(value);
                       },
                     ),
                     const SizedBox(height: 18),
                     const SettingsDivider(),
                     const SizedBox(height: 12),
-                    const SettingsSectionTitle(title: 'Uiterlijk'),
+
+                    // ── Appearance ───────────────────────────────────────
+                    SettingsSectionTitle(title: l10n.tr('section_appearance')),
                     const SizedBox(height: 10),
                     SettingsVerticalRadioGroup<String>(
                       groupValue: _selectedAppearance,
-                      options: const [
-                        SettingsOption(label: 'Licht', value: 'light'),
-                        SettingsOption(label: 'Donker', value: 'dark'),
+                      options: [
                         SettingsOption(
-                          label: 'Automatisch (volgt systeeminstellingen)',
+                          label: l10n.tr('appearance_light'),
+                          value: 'light',
+                        ),
+                        SettingsOption(
+                          label: l10n.tr('appearance_dark'),
+                          value: 'dark',
+                        ),
+                        SettingsOption(
+                          label: l10n.tr('appearance_auto'),
                           value: 'auto',
                         ),
                       ],
@@ -124,8 +148,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(height: 8),
                     const SettingsDivider(),
                     const SizedBox(height: 12),
+
+                    // ── Sound ────────────────────────────────────────────
                     SettingsToggleTile(
-                      label: 'Geluid',
+                      label: l10n.tr('toggle_sound'),
                       value: _soundEnabled,
                       onChanged: (value) {
                         setState(() => _soundEnabled = value);
@@ -134,8 +160,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(height: 8),
                     const SettingsDivider(),
                     const SizedBox(height: 12),
+
+                    // ── Haptic ───────────────────────────────────────────
                     SettingsToggleTile(
-                      label: 'Haptisch',
+                      label: l10n.tr('toggle_haptic'),
                       value: _hapticEnabled,
                       onChanged: (value) {
                         setState(() => _hapticEnabled = value);
@@ -144,10 +172,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(height: 8),
                     const SettingsDivider(),
                     const SizedBox(height: 18),
-                    const SettingsSectionTitle(title: 'Tekstgrootte'),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SettingsSectionTitle(
+                            title: l10n.tr('section_text_size'),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: (appliedTextScale - _defaultTextScale)
+                                      .abs() <
+                                  0.001 &&
+                              (_previewTextScale - _defaultTextScale).abs() <
+                                  0.001
+                              ? null
+                              : _resetTextScale,
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppTheme.primaryMagenta,
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(l10n.tr('text_size_reset')),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 12),
                     Text(
-                      'Huidige appgrootte: ${(appliedTextScale * 100).round()}%',
+                      l10n.tr('text_size_current', {
+                        'size': (appliedTextScale * 100).round().toString(),
+                      }),
                       style: const TextStyle(
                         fontSize: 13,
                         color: AppTheme.settingsMuted,
@@ -212,16 +267,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       child: Center(
                         child: Text(
-                          'Voorbeeld tekstgrootte',
+                          l10n.tr('text_size_preview'),
                           textAlign: TextAlign.center,
                           style: TextStyle(fontSize: 18 * _previewTextScale),
                         ),
                       ),
                     ),
                     const SizedBox(height: 10),
-                    const Text(
-                      'Laat de schuifregelaar los om te bevestigen en deze tekstgrootte op de hele app toe te passen.',
-                      style: TextStyle(
+                    Text(
+                      l10n.tr('text_size_hint'),
+                      style: const TextStyle(
                         fontSize: 13,
                         color: AppTheme.settingsMuted,
                       ),
