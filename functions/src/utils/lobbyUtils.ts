@@ -24,7 +24,7 @@ function randomDigitCode(length = 4): string {
  * @return {Promise<string>} A unique join code.
  */
 export async function generateUniqueJoinCode(
-  maxAttempts = 20
+  maxAttempts = 20,
 ): Promise<string> {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const code = randomDigitCode(4);
@@ -43,7 +43,7 @@ export async function generateUniqueJoinCode(
 
   throw new HttpsError(
     "resource-exhausted",
-    "Could not generate a unique join code."
+    "Could not generate a unique join code.",
   );
 }
 

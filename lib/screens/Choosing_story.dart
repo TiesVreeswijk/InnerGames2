@@ -6,20 +6,21 @@ import '../services/lobby_service.dart';
 import '../services/auth_service.dart';
 
 class ChoosingStoryScreen extends StatelessWidget {
-  const ChoosingStoryScreen({super.key});
+  // ✅ FIX: accept hostName and selectedAvatar as constructor params
+  // instead of reading from ModalRoute (which is unreliable in StatelessWidget)
+  final String? hostName;
+  final int? selectedAvatar;
+
+  const ChoosingStoryScreen({
+    super.key,
+    this.hostName,
+    this.selectedAvatar,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final routeArgs =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
-            {};
-
-    final String playerName = routeArgs['hostName'] ??
-        routeArgs['playerName'] ??
-        routeArgs['name'] ??
-        'Host';
-
-    final dynamic selectedAvatar = routeArgs['selectedAvatar'];
+    // ✅ FIX: use constructor params directly — no more ModalRoute needed
+    final String playerName = hostName ?? 'Host';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),

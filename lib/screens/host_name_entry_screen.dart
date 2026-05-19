@@ -21,6 +21,7 @@ class HostNameEntryScreen extends StatefulWidget {
 
 class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
   final TextEditingController _nameController = TextEditingController();
+  final GlobalKey<State<NameInputWidget>> _nameInputKey = GlobalKey();
 
   @override
   void dispose() {
@@ -33,6 +34,7 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
     final name = _nameController.text.trim();
     
     if (name.isEmpty) {
+      (_nameInputKey.currentState as dynamic)?.shake();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.tr('enter_name')),
@@ -43,6 +45,7 @@ class _HostNameEntryScreenState extends State<HostNameEntryScreen> {
     }
 
     if (name.length < 2) {
+      (_nameInputKey.currentState as dynamic)?.shake();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.tr('name_too_short')),

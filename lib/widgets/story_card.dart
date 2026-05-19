@@ -5,11 +5,13 @@ import '../models/story_card_data.dart';
 class StoryCard extends StatefulWidget {
   final StoryCardData data;
   final VoidCallback? onTimerFinished;
+  final bool showTimer;
 
   const StoryCard({ // initial data for story card
     Key? key,
     required this.data,
     this.onTimerFinished,
+    this.showTimer = true,
   }) : super(key: key);
 
   @override
@@ -91,7 +93,6 @@ class _StoryCardState extends State<StoryCard> { // this state will manage the t
               controller: _controller,
               onPageChanged: (i) => setState(() => _currentPage = i),
               children: [
-                _buildImagePage(),
                 for (final text in widget.data.textPages) _buildTextPage(text),
               ],
             ),
@@ -103,47 +104,24 @@ class _StoryCardState extends State<StoryCard> { // this state will manage the t
               child: _buildNavBar(),
             ),
             // Timer badge
-            Positioned(
-              top: 10,
-              right: 10,
-              child: _buildTimerBadge(),
-            ),
+            if (widget.showTimer)
+              Positioned(
+                top: 10,
+                right: 10,
+                child: _buildTimerBadge(),
+              ),
           ],
       ),
     );
   }
 
-  // page 1: image
-  Widget _buildImagePage() {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Image.asset(
-          widget.data.imageAsset,
-          fit: BoxFit.cover,
-          width: double.infinity,
-          height: double.infinity,
-        ),
-        // Dark gradient
-        const DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0x00000000), Color(0xCC000000)],
-              stops: [0.35, 1.0],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+
 
   // page 2+: text content
   Widget _buildTextPage(String text) {
     return Container(
       color: const Color(0xFFEAEAEA),
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 44),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -176,11 +154,15 @@ class _StoryCardState extends State<StoryCard> { // this state will manage the t
 
   // navigation dots + arrows
   Widget _buildNavBar() {
-    final onImage = _currentPage == 0;
-    final bg = onImage ? Colors.transparent : const Color(0xFFEAEAEA);
-    final dotActive = onImage ? Colors.white : const Color(0xFF555555);
-    final dotInactive = onImage ? Colors.white38 : const Color(0xFFAAAAAA);
-    final arrowColor = onImage ? Colors.white70 : const Color(0xFF777777);
+    final pageCount = widget.data.textPages.length;
+    if (pageCount <= 1) {
+      // Geen navigatie tonen bij 1 pagina
+      return const SizedBox.shrink();
+    }
+    final bg = const Color(0xFFEAEAEA);
+    final dotActive = const Color(0xFF555555);
+    final dotInactive = const Color(0xFFAAAAAA);
+    final arrowColor = const Color(0xFF777777);
 
     return Container(
       color: bg,
@@ -199,7 +181,7 @@ class _StoryCardState extends State<StoryCard> { // this state will manage the t
               ),
             ),
           ),
-          ...List.generate(_totalPages, (i) => Container(
+          ...List.generate(pageCount, (i) => Container(
             margin: const EdgeInsets.symmetric(horizontal: 3),
             width: 7,
             height: 7,
@@ -215,7 +197,7 @@ class _StoryCardState extends State<StoryCard> { // this state will manage the t
               child: Icon(
                 Icons.chevron_right,
                 size: 22,
-                color: _currentPage < _totalPages - 1 ? arrowColor : Colors.transparent,
+                color: _currentPage < pageCount - 1 ? arrowColor : Colors.transparent,
               ),
             ),
           ),
