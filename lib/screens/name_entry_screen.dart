@@ -17,6 +17,7 @@ class NameEntryScreen extends StatefulWidget {
 
 class _NameEntryScreenState extends State<NameEntryScreen> {
   final TextEditingController _nameController = TextEditingController();
+  final GlobalKey<State<NameInputWidget>> _nameInputKey = GlobalKey();
 
   @override
   void dispose() {
@@ -28,6 +29,9 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
     final name = _nameController.text.trim();
     
     if (name.isEmpty) {
+      _nameInputKey.currentState?.setState(() {});
+      // Access the state to call shake
+      (_nameInputKey.currentState as dynamic)?.shake();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Enter your name'),
@@ -38,6 +42,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
     }
 
     if (name.length < 2) {
+      (_nameInputKey.currentState as dynamic)?.shake();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('The name must be at least 2 characters long'),
@@ -68,6 +73,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
       appBar: const CustomAppBar(),
       body: SafeArea(
         child: NameInputWidget(
+          key: _nameInputKey,
           titleStyle: AppTheme.entryScreenTitle,
           title: 'Join session',
           controller: _nameController,
