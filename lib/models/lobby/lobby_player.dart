@@ -4,6 +4,7 @@ class LobbyPlayer {
   final bool isHost;
   final bool isReady;
   final bool connected;
+  final int? selectedAvatar;
 
   LobbyPlayer({
     required this.uid,
@@ -11,6 +12,7 @@ class LobbyPlayer {
     required this.isHost,
     required this.isReady,
     required this.connected,
+    required this.selectedAvatar,
   });
 
   factory LobbyPlayer.fromMap(Map<String, dynamic> map) {
@@ -20,6 +22,7 @@ class LobbyPlayer {
       isHost: map['isHost'] ?? false,
       isReady: map['isReady'] ?? false,
       connected: map['connected'] ?? false,
+      selectedAvatar: map['selectedAvatar'] ?? '',
     );
   }
 
@@ -30,6 +33,7 @@ class LobbyPlayer {
       'isHost': isHost,
       'isReady': isReady,
       'connected': connected,
+      'selectedAvatar': selectedAvatar,
     };
   }
 }

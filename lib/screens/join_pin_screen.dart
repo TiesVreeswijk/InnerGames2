@@ -75,6 +75,7 @@ class _JoinPinScreenState extends State<JoinPinScreen> {
       final result = await lobbyService.joinLobby(
         playerName: playerName,
         joinCode: _pin,
+        selectedAvatar: selectedAvatar ?? 0,
       );
 
       if (!mounted) return;
