@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import '../models/scenario_data.dart';
 
 
@@ -22,41 +23,41 @@ class ScenarioService {
     return user;
   }
 
+  // ── Scenario fetching ──────────────────────────────────────────────────────
+
   Future<ScenarioData?> getCurrentScenario(String lobbyId) async {
     final lobbyDoc = await _firestore.collection('lobbies').doc(lobbyId).get();
     if (!lobbyDoc.exists) return null;
     final currentScenarioId = lobbyDoc.data()?['currentScenarioId'] as String?;
-    // Als currentScenarioId niet gezet is, begin altijd met 'scenario_1'
     final scenarioId = currentScenarioId ?? 'scenario_1';
     return await getScenario(scenarioId);
   }
 
   Future<List<ScenarioData>> getAllScenarios() async {
-  final scenarioDocs = await _firestore.collection('scenarios').get();
-  List<ScenarioData> scenarios = [];
-  for (final doc in scenarioDocs.docs) {
-    // Laad de antwoorden uit de subcollectie
-    final answersSnapshot = await _firestore
-        .collection('scenarios')
-        .doc(doc.id)
-        .collection('answers')
-        .get();
+    final scenarioDocs = await _firestore.collection('scenarios').get();
+    List<ScenarioData> scenarios = [];
+    for (final doc in scenarioDocs.docs) {
+      final answersSnapshot = await _firestore
+          .collection('scenarios')
+          .doc(doc.id)
+          .collection('answers')
+          .get();
 
-    final answers = answersSnapshot.docs
-        .map((answerDoc) => AnswerData.fromFirestore(answerDoc.id, answerDoc.data()))
-        .toList();
+      final answers = answersSnapshot.docs
+          .map((answerDoc) =>
+          AnswerData.fromFirestore(answerDoc.id, answerDoc.data()))
+          .toList();
 
-    scenarios.add(ScenarioData.fromFirestore(doc.id, doc.data(), answers));
+      scenarios.add(ScenarioData.fromFirestore(doc.id, doc.data(), answers));
+    }
+    return scenarios;
   }
-  return scenarios;
-}
 
   Future<ScenarioData?> getScenario(String scenarioId) async {
-    final scenarioDoc = await _firestore.collection('scenarios').doc(scenarioId).get();
-
+    final scenarioDoc =
+    await _firestore.collection('scenarios').doc(scenarioId).get();
     if (!scenarioDoc.exists) return null;
 
-    // Laad de antwoorden uit de subcollectie
     final answersSnapshot = await _firestore
         .collection('scenarios')
         .doc(scenarioId)
@@ -74,5 +75,67 @@ class ScenarioService {
     await _firestore.collection('lobbies').doc(lobbyId).update({
       'currentScenarioId': nextScenarioId,
     });
+  }
+
+  // ── Lobby listening ────────────────────────────────────────────────────────
+
+  Stream<DocumentSnapshot<Map<String, dynamic>>> listenToLobby(String lobbyId) {
+    return _firestore.collection('lobbies').doc(lobbyId).snapshots();
+  }
+
+  // ── Player management ──────────────────────────────────────────────────────
+
+  Future<void> removePlayer(String lobbyId) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        debugPrint('removePlayer: no current user!');
+        return;
+      }
+
+      debugPrint('removePlayer: deleting uid=${user.uid} from lobby=$lobbyId');
+
+      await _firestore
+          .collection('lobbies')
+          .doc(lobbyId)
+          .collection('players')
+          .doc(user.uid)
+          .delete();
+
+      debugPrint('removePlayer: delete successful');
+    } catch (e) {
+      debugPrint('removePlayer error: $e');
+    }
+  }
+
+  /// Sets status to 'closed' first so all listeners can react,
+  /// waits briefly, then deletes the lobby document.
+  Future<void> closeLobby(String lobbyId) async {
+    try {
+      await _firestore.collection('lobbies').doc(lobbyId).update({
+        'status': 'closed',
+        'closedAt': FieldValue.serverTimestamp(),
+      });
+      // Give clients time to receive the status update before deletion
+      await Future.delayed(const Duration(seconds: 2));
+      await _firestore.collection('lobbies').doc(lobbyId).delete();
+      debugPrint('closeLobby: deleted lobby $lobbyId');
+    } catch (e) {
+      debugPrint('closeLobby error: $e');
+    }
+  }
+
+  Future<void> finishAndDeleteLobby(String lobbyId) async {
+    try {
+      await _firestore.collection('lobbies').doc(lobbyId).update({
+        'status': 'finished',
+        'finishedAt': FieldValue.serverTimestamp(),
+      });
+      await Future.delayed(const Duration(seconds: 3));
+      await _firestore.collection('lobbies').doc(lobbyId).delete();
+      debugPrint('finishAndDeleteLobby: deleted lobby $lobbyId');
+    } catch (e) {
+      debugPrint('finishAndDeleteLobby error: $e');
+    }
   }
 }
