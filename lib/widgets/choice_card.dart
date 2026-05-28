@@ -32,6 +32,23 @@ class ChoiceCard extends StatefulWidget {
 }
 
 class _ChoiceCardState extends State<ChoiceCard> {
+    // Controleer op eindantwoord zonder nextScenarioId en toon joker dialog na 5 seconden als er nog levens zijn
+    void _checkEndScenarioAndShowJoker() async {
+      // Vind of er een gekozen antwoord is zonder nextScenarioId
+      final selected = _confirmedIndex;
+      if (selected == null) return;
+      final choice = widget.choices[selected];
+      // Alleen host mag de joker dialog zien
+      if (!widget.isHost) return;
+      // Controleer of het een eindantwoord is
+      if (choice.nextCardId.isEmpty && widget.lostLifes < 3) {
+        // Wacht 5 seconden
+        await Future.delayed(const Duration(seconds: 1));
+        if (mounted && widget.lostLifes < 3) {
+          _showJokerDialog();
+        }
+      }
+    }
   int _jokersLeft = 2;
   int? _selectedIndex;
   int? _confirmedIndex;
@@ -49,10 +66,6 @@ class _ChoiceCardState extends State<ChoiceCard> {
         title: const Text('Joker inzetten'),
         content: const Text('Wil je deze joker inzetten om een scenario opnieuw te beantwoorden?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Annuleren'),
-          ),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();{
@@ -131,6 +144,8 @@ class _ChoiceCardState extends State<ChoiceCard> {
     if (_selectedIndex == index) {
       setState(() => _confirmedIndex = index);
       widget.onChoiceSelected?.call(choice);
+      // Controleer na keuze of het een eindantwoord is en toon eventueel joker
+      _checkEndScenarioAndShowJoker();
     } else {
       setState(() {
         _selectedIndex = index;
@@ -196,39 +211,8 @@ class _ChoiceCardState extends State<ChoiceCard> {
                 ),
               ),
               const Spacer(),
-              // Jokers
-              if (_jokersLeft > 0)
-                GestureDetector(
-                  onTap: widget.isHost ? _showJokerDialog : null,
-                  child: Opacity(
-                    opacity: widget.isHost ? 1.0 : 0.5,
-                    child: Transform.rotate(
-                      angle: -0.25, // iets naar links
-                      child: Image.asset(
-                        'assets/images/joker.png',
-                        width: 50,
-                        height: 50,
-                      ),
-                    ),
-                  ),
-                ),
-              if (_jokersLeft > 1) ...[
-                const SizedBox(width: 4),
-                GestureDetector(
-                  onTap: widget.isHost ? _showJokerDialog : null,
-                  child: Opacity(
-                    opacity: widget.isHost ? 1.0 : 0.5,
-                    child: Transform.rotate(
-                      angle: -0.25,
-                      child: Image.asset(
-                        'assets/images/joker.png',
-                        width: 50,
-                        height: 50,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              // Jokers zijn niet zichtbaar voor host of speler
+              // (de functionaliteit blijft behouden, alleen de weergave is verwijderd)
               const SizedBox(width: 8),
               Image.asset(
                 widget.lostLifes >= 1
