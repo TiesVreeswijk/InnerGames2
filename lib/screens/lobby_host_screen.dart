@@ -249,19 +249,25 @@ class _LobbyHostScreenState extends State<LobbyHostScreen> {
       child: SizedBox(
         width: double.infinity,
         height: 48,
-        child: OutlinedButton.icon(
+        child: ElevatedButton.icon(
           onPressed: _showJoinCodeBottomSheet,
-          icon: const Icon(Icons.qr_code),
-          label: const Text('Toon pin / QR-code'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: const Color(0xFF2C3E7E),
-            side: const BorderSide(
-              color: Color(0xFF2C3E7E),
-              width: 1.5,
+          icon: const Icon(
+            Icons.qr_code,
+            color: Colors.white,
+          ),
+          label: const Text(
+            'Toon pin / QR-code',
+            style: TextStyle(
+              color: Colors.white,
             ),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFE4007D),
+            foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
+            elevation: 4,
             textStyle: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,

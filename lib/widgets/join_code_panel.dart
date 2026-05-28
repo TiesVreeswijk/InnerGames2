@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-enum JoinCodeView {
-  pin,
-  qr,
-}
-
 class JoinCodePanel extends StatefulWidget {
   final String pin;
   final String? title;
@@ -27,40 +22,25 @@ class JoinCodePanel extends StatefulWidget {
 }
 
 class _JoinCodePanelState extends State<JoinCodePanel> {
-  JoinCodeView _selectedView = JoinCodeView.pin;
-
-  bool get _showingPinCode => _selectedView == JoinCodeView.pin;
-
-  void _setSelectedView(JoinCodeView view) {
-    setState(() {
-      _selectedView = view;
-    });
-  }
+  // No toggle state anymore — show both PIN and QR together.
 
   @override
   Widget build(BuildContext context) {
-    final String title =
-        widget.title ?? (_showingPinCode ? 'Deel Pin code' : 'Deel QR-code');
+    final String title = widget.title ?? 'Deel code';
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildHeader(title),
 
-        SizedBox(height: widget.compact ? 32 : 48),
+        SizedBox(height: widget.compact ? 24 : 36),
 
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          switchInCurve: Curves.easeOut,
-          switchOutCurve: Curves.easeIn,
-          child: _showingPinCode
-              ? _buildPinDisplay(key: const ValueKey('pin'))
-              : _buildQRDisplay(key: const ValueKey('qr')),
-        ),
+        // Show PIN and QR together
+        _buildPinDisplay(key: const ValueKey('pin')),
+        SizedBox(height: widget.compact ? 16 : 20),
+        _buildQRDisplay(key: const ValueKey('qr')),
 
-        SizedBox(height: widget.compact ? 32 : 48),
-
-        _buildToggleButtons(),
+        SizedBox(height: widget.compact ? 24 : 36),
       ],
     );
   }
@@ -198,68 +178,6 @@ class _JoinCodePanelState extends State<JoinCodePanel> {
     );
   }
 
-  Widget _buildToggleButtons() {
-    return Row(
-      children: [
-        Expanded(
-          child: _JoinCodeToggleButton(
-            text: 'Pin code',
-            isSelected: _selectedView == JoinCodeView.pin,
-            onTap: () => _setSelectedView(JoinCodeView.pin),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _JoinCodeToggleButton(
-            text: 'QR-code',
-            isSelected: _selectedView == JoinCodeView.qr,
-            onTap: () => _setSelectedView(JoinCodeView.qr),
-          ),
-        ),
-      ],
-    );
-  }
+  // Toggle buttons removed — both PIN and QR are displayed above.
 }
-
-class _JoinCodeToggleButton extends StatelessWidget {
-  final String text;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _JoinCodeToggleButton({
-    Key? key,
-    required this.text,
-    required this.isSelected,
-    required this.onTap,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
-      curve: Curves.easeOut,
-      height: 50,
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFFE91E63) : const Color(0xFFE8E8E8),
-        borderRadius: BorderRadius.circular(25),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(25),
-          child: Center(
-            child: Text(
-              text,
-              style: TextStyle(
-                color: isSelected ? Colors.white : Colors.black87,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+// Toggle removed — both PIN and QR are shown together now.
