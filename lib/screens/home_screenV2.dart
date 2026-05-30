@@ -3,6 +3,10 @@ import '../theme/app_themeRyan.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/animated_pop_button_effect.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'dart:math' as math;
+
+final RouteObserver<PageRoute<dynamic>> homeRouteObserver =
+    RouteObserver<PageRoute<dynamic>>();
 
 class HomeScreenv2 extends StatefulWidget {
   const HomeScreenv2({super.key});
@@ -11,14 +15,49 @@ class HomeScreenv2 extends StatefulWidget {
   State<HomeScreenv2> createState() => _HomeScreenv2State();
 }
 
-class _HomeScreenv2State extends State<HomeScreenv2> {
+class _HomeScreenv2State extends State<HomeScreenv2>
+    with SingleTickerProviderStateMixin, RouteAware {
   bool _startBackgroundEffect = false;
   bool _showContent = false;
+  late final AnimationController _bounceController;
+  PageRoute<dynamic>? _route;
+  bool _enableBounce = false;
 
   @override
   void initState() {
     super.initState();
+    _bounceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
     _startSequence();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final route = ModalRoute.of(context);
+    if (route is PageRoute && route != _route) {
+      if (_route != null) {
+        homeRouteObserver.unsubscribe(this);
+      }
+      _route = route;
+      homeRouteObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void didPopNext() {
+    setState(() => _enableBounce = true);
+    _startBounceAnimation();
+  }
+
+  @override
+  void dispose() {
+    homeRouteObserver.unsubscribe(this);
+    _bounceController.dispose();
+    super.dispose();
   }
 
   void _startSequence() async {
@@ -29,6 +68,35 @@ class _HomeScreenv2State extends State<HomeScreenv2> {
     await Future.delayed(const Duration(milliseconds: 300));
     if (!mounted) return;
     setState(() => _showContent = true);
+  }
+
+  void _startBounceAnimation() {
+    _bounceController.forward(from: 0);
+  }
+
+  Widget _buildBouncingButton({
+    required double phase,
+    required Widget child,
+  }) {
+    if (!_enableBounce) {
+      return child;
+    }
+
+    return AnimatedBuilder(
+      animation: _bounceController,
+      child: child,
+      builder: (context, child) {
+        final t = _bounceController.value;
+        final cycles = 3.0;
+        final amplitude = 8.0 * math.pow(0.45, t * cycles).toDouble();
+        final offsetY = math.sin((t * math.pi * 2 * cycles) + phase) * -amplitude;
+
+        return Transform.translate(
+          offset: Offset(0, offsetY),
+          child: child,
+        );
+      },
+    );
   }
 
   @override
@@ -66,11 +134,20 @@ class _HomeScreenv2State extends State<HomeScreenv2> {
                     child: FadeInAnimation(child: widget),
                   ),
                   children: [
-                    _buildMenuButton(context, 'Play', Icons.play_arrow, '/create-join'),
+                    _buildBouncingButton(
+                      phase: 0,
+                      child: _buildMenuButton(context, 'Play', Icons.play_arrow, '/create-join'),
+                    ),
                     const SizedBox(height: 16),
-                    _buildMenuButton(context, 'Scan', Icons.qr_code_scanner, null),
+                    _buildBouncingButton(
+                      phase: math.pi / 2,
+                      child: _buildMenuButton(context, 'Scan', Icons.qr_code_scanner, null),
+                    ),
                     const SizedBox(height: 16),
-                    _buildMenuButton(context, 'Settings', Icons.settings, '/settings'),
+                    _buildBouncingButton(
+                      phase: math.pi,
+                      child: _buildMenuButton(context, 'Settings', Icons.settings, '/settings'),
+                    ),
                   ],
                 ),
               ),
@@ -105,17 +182,27 @@ class _HomeScreenv2State extends State<HomeScreenv2> {
 
   Widget _buildMenuButton(
       BuildContext context, String label, IconData icon, String? route) {
-    return AnimatedPressButton(
-      onPressed: route != null ? () => Navigator.pushNamed(context, route) : null,
-      child: FilledButton.icon(
-        // onPressed is intentionally null here; AnimatedPressButton handles the tap
-        onPressed: null,
-        icon: Icon(icon),
-        label: Text(label),
-        style: AppTheme.primaryButton.copyWith(
-          // Keep the magenta colour even when onPressed is null (disabled state)
-          backgroundColor: WidgetStateProperty.all(AppTheme.primaryMagenta),
-          foregroundColor: WidgetStateProperty.all(Colors.white),
+    final phase = switch (label) {
+      'Play' => 0.0,
+      'Scan' => math.pi / 2,
+      'Settings' => math.pi,
+      _ => 0.0,
+    };
+
+    return _buildBouncingButton(
+      phase: phase,
+      child: AnimatedPressButton(
+        onPressed: route != null ? () => Navigator.pushNamed(context, route) : null,
+        child: FilledButton.icon(
+          // onPressed is intentionally null here; AnimatedPressButton handles the tap
+          onPressed: null,
+          icon: Icon(icon),
+          label: Text(label),
+          style: AppTheme.primaryButton.copyWith(
+            // Keep the magenta colour even when onPressed is null (disabled state)
+            backgroundColor: WidgetStateProperty.all(AppTheme.primaryMagenta),
+            foregroundColor: WidgetStateProperty.all(Colors.white),
+          ),
         ),
       ),
     );
