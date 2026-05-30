@@ -21,6 +21,7 @@ class _HomeScreenv2State extends State<HomeScreenv2>
   bool _showContent = false;
   late final AnimationController _bounceController;
   PageRoute<dynamic>? _route;
+  bool _enableBounce = false;
 
   @override
   void initState() {
@@ -48,6 +49,7 @@ class _HomeScreenv2State extends State<HomeScreenv2>
 
   @override
   void didPopNext() {
+    setState(() => _enableBounce = true);
     _startBounceAnimation();
   }
 
@@ -76,6 +78,10 @@ class _HomeScreenv2State extends State<HomeScreenv2>
     required double phase,
     required Widget child,
   }) {
+    if (!_enableBounce) {
+      return child;
+    }
+
     return AnimatedBuilder(
       animation: _bounceController,
       child: child,
@@ -121,20 +127,37 @@ class _HomeScreenv2State extends State<HomeScreenv2>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: AnimationConfiguration.toStaggeredList(
-                  duration: const Duration(milliseconds: 800),
-                  childAnimationBuilder: (widget) => SlideAnimation(
-                    verticalOffset: 100.0,
-                    child: FadeInAnimation(child: widget),
+                children: [
+                  AnimationConfiguration.synchronized(
+                    duration: const Duration(milliseconds: 800),
+                    child: SlideAnimation(
+                      verticalOffset: 100.0,
+                      child: FadeInAnimation(
+                        child: _buildMenuButton(context, 'Play', Icons.play_arrow, '/create-join'),
+                      ),
+                    ),
                   ),
-                  children: [
-                    _buildMenuButton(context, 'Play', Icons.play_arrow, '/create-join'),
-                    const SizedBox(height: 16),
-                    _buildMenuButton(context, 'Scan', Icons.qr_code_scanner, null),
-                    const SizedBox(height: 16),
-                    _buildMenuButton(context, 'Settings', Icons.settings, '/settings'),
-                  ],
-                ),
+                  const SizedBox(height: 16),
+                  AnimationConfiguration.synchronized(
+                    duration: const Duration(milliseconds: 800),
+                    child: SlideAnimation(
+                      verticalOffset: 100.0,
+                      child: FadeInAnimation(
+                        child: _buildMenuButton(context, 'Scan', Icons.qr_code_scanner, null),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  AnimationConfiguration.synchronized(
+                    duration: const Duration(milliseconds: 800),
+                    child: SlideAnimation(
+                      verticalOffset: 100.0,
+                      child: FadeInAnimation(
+                        child: _buildMenuButton(context, 'Settings', Icons.settings, '/settings'),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 
