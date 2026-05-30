@@ -54,6 +54,7 @@ class SocialityApp extends StatelessWidget {
               primarySwatch: Colors.pink,
               fontFamily: 'SF Pro Text',
             ),
+            navigatorObservers: [routeObserver, homeRouteObserver],
             builder: (context, child) {
               final mediaQuery = MediaQuery.of(context);
 
