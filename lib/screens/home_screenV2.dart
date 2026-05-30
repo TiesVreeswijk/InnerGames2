@@ -127,37 +127,29 @@ class _HomeScreenv2State extends State<HomeScreenv2>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AnimationConfiguration.synchronized(
-                    duration: const Duration(milliseconds: 800),
-                    child: SlideAnimation(
-                      verticalOffset: 100.0,
-                      child: FadeInAnimation(
-                        child: _buildMenuButton(context, 'Play', Icons.play_arrow, '/create-join'),
-                      ),
-                    ),
+                children: AnimationConfiguration.toStaggeredList(
+                  duration: const Duration(milliseconds: 800),
+                  childAnimationBuilder: (widget) => SlideAnimation(
+                    verticalOffset: 100.0,
+                    child: FadeInAnimation(child: widget),
                   ),
-                  const SizedBox(height: 16),
-                  AnimationConfiguration.synchronized(
-                    duration: const Duration(milliseconds: 800),
-                    child: SlideAnimation(
-                      verticalOffset: 100.0,
-                      child: FadeInAnimation(
-                        child: _buildMenuButton(context, 'Scan', Icons.qr_code_scanner, null),
-                      ),
+                  children: [
+                    _buildBouncingButton(
+                      phase: 0,
+                      child: _buildMenuButton(context, 'Play', Icons.play_arrow, '/create-join'),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  AnimationConfiguration.synchronized(
-                    duration: const Duration(milliseconds: 800),
-                    child: SlideAnimation(
-                      verticalOffset: 100.0,
-                      child: FadeInAnimation(
-                        child: _buildMenuButton(context, 'Settings', Icons.settings, '/settings'),
-                      ),
+                    const SizedBox(height: 16),
+                    _buildBouncingButton(
+                      phase: math.pi / 2,
+                      child: _buildMenuButton(context, 'Scan', Icons.qr_code_scanner, null),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    _buildBouncingButton(
+                      phase: math.pi,
+                      child: _buildMenuButton(context, 'Settings', Icons.settings, '/settings'),
+                    ),
+                  ],
+                ),
               ),
             ),
 
