@@ -28,7 +28,7 @@ class _HomeScreenv2State extends State<HomeScreenv2>
     super.initState();
     _bounceController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 1000),
     );
     _startSequence();
   }
