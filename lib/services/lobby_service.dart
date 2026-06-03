@@ -3,6 +3,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../models/scenario_data.dart';
+import '../models/lobby/lobby_player.dart';
 
 class CreateLobbyResult {
   final String lobbyId;
@@ -104,7 +105,8 @@ class LobbyService {
     );
   }
 
-  Stream<List<String>> listenToPlayerNames(String lobbyId) {
+  // This handles both players and their avatars together, so the UI can get all the data it needs from one stream instead of syncing two separate ones.
+  Stream<List<LobbyPlayer>> listenToPlayers(String lobbyId) {
     return _firestore
         .collection('lobbies')
         .doc(lobbyId)
@@ -113,13 +115,19 @@ class LobbyService {
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
-        final data = doc.data();
-
-        return data['displayName'] as String? ??
-            data['name'] as String? ??
-            'Unknown';
+        final data = Map<String, dynamic>.from(doc.data());
+        // Ensure uid is always set, even if the cloud function didn't write it
+        data['uid'] = doc.id;
+        return LobbyPlayer.fromMap(data);
       }).toList();
     });
+  }
+
+  // so both streams stay in sync from the same Firestore query.
+  Stream<List<String>> listenToPlayerNames(String lobbyId) {
+    return listenToPlayers(lobbyId).map(
+      (players) => players.map((p) => p.displayName).toList(),
+    );
   }
 
   Stream<DocumentSnapshot<Map<String, dynamic>>> listenToLobby(

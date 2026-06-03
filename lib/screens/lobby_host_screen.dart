@@ -5,6 +5,7 @@ import '../widgets/lobby_content.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/join_code_panel.dart';
 import '../services/lobby_service.dart';
+import '../models/lobby/lobby_player.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LobbyHostScreen extends StatefulWidget {
@@ -12,9 +13,9 @@ class LobbyHostScreen extends StatefulWidget {
   final String gameTitle;
   final String pin;
   final String lobbyId;
-  final List<String> players;
+  final List<LobbyPlayer> players; // list of players with avatar data included
   final String? hostName;
-  final int? selectedAvatar; // ✅ FIX: added selectedAvatar
+  final int? selectedAvatar;
 
   const LobbyHostScreen({
     Key? key,
@@ -24,7 +25,7 @@ class LobbyHostScreen extends StatefulWidget {
     required this.lobbyId,
     this.players = const [],
     this.hostName,
-    this.selectedAvatar, // ✅ FIX: added selectedAvatar
+    this.selectedAvatar,
   }) : super(key: key);
 
   @override
@@ -34,36 +35,55 @@ class LobbyHostScreen extends StatefulWidget {
 class _LobbyHostScreenState extends State<LobbyHostScreen> {
   final LobbyService _lobbyService = LobbyService();
 
-  late List<String> _players;
-  StreamSubscription<List<String>>? _playersSubscription;
-  bool _gameStarted = false; // ✅ prevents closeLobby firing when game starts
+  late List<LobbyPlayer> _players;
+  StreamSubscription<List<LobbyPlayer>>? _playersSubscription;
+  bool _gameStarted = false;
   StreamSubscription? _lobbyStatusSubscription;
 
   @override
   void initState() {
     super.initState();
 
-    // ✅ FIX: seed with hostName if players list is empty, so the host
-    // always sees their own name immediately before Firebase responds.
+
     if (widget.players.isNotEmpty) {
       _players = List.from(widget.players);
     } else if (widget.hostName != null) {
-      _players = [widget.hostName!];
+      _players = [
+        LobbyPlayer(
+          uid: '',
+          displayName: widget.hostName!,
+          isHost: true,
+          isReady: false,
+          connected: true,
+          selectedAvatar: widget.selectedAvatar,
+        ),
+      ];
     } else {
       _players = [];
     }
 
     _playersSubscription =
-        _lobbyService.listenToPlayerNames(widget.lobbyId).listen((players) {
+        _lobbyService.listenToPlayers(widget.lobbyId).listen((players) {
           if (!mounted) return;
           setState(() {
-            // ✅ FIX: if the cloud function saved a placeholder instead of
-            // the real name, replace it with the name the host actually typed.
             if (widget.hostName != null && players.isNotEmpty) {
+              // default placeholders if Firestore doesn't have real data yet; but prefer Firestore values as soon as they exist
               final firstIsPlaceholder =
-                  players[0] == 'Host' || players[0] == 'Unknown';
+                  players[0].displayName == 'Host' ||
+                  players[0].displayName == 'Unknown';
               if (firstIsPlaceholder) {
-                _players = [widget.hostName!, ...players.skip(1)];
+                _players = [
+                  LobbyPlayer(
+                    uid: players[0].uid,
+                    displayName: widget.hostName!,
+                    isHost: players[0].isHost,
+                    isReady: players[0].isReady,
+                    connected: players[0].connected,
+                    selectedAvatar:
+                        players[0].selectedAvatar ?? widget.selectedAvatar, // fallback to prevent erroring if can't find selectedavatar in Firestore yet
+                  ),
+                  ...players.skip(1),
+                ];
               } else {
                 _players = players;
               }
@@ -72,10 +92,14 @@ class _LobbyHostScreenState extends State<LobbyHostScreen> {
             }
           });
         });
-    
-    // Listen to lobby status changes
-    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-    _lobbyStatusSubscription = _firestore.collection('lobbies').doc(widget.lobbyId).snapshots().listen((snapshot) {
+
+    // Listen for the host-triggered game start so the screen transitions.
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+    _lobbyStatusSubscription = firestore
+        .collection('lobbies')
+        .doc(widget.lobbyId)
+        .snapshots()
+        .listen((snapshot) {
       final data = snapshot.data();
       if (data != null && data['status'] == 'started') {
         if (mounted) {
@@ -95,7 +119,6 @@ class _LobbyHostScreenState extends State<LobbyHostScreen> {
     });
   }
 
-  // ✅ NEW: close the lobby when the host backs out
   Future<void> _closeLobbyAndPop() async {
     await _lobbyService.closeLobby(widget.lobbyId);
     if (!mounted) return;
@@ -105,7 +128,6 @@ class _LobbyHostScreenState extends State<LobbyHostScreen> {
   @override
   void dispose() {
     _playersSubscription?.cancel();
-    // ✅ only close lobby if host left without starting the game
     if (!_gameStarted) {
       _lobbyService.closeLobby(widget.lobbyId);
     }
@@ -176,7 +198,6 @@ class _LobbyHostScreenState extends State<LobbyHostScreen> {
       return;
     }
 
-    // ✅ set flag FIRST before any await or navigation so dispose() sees it
     _gameStarted = true;
 
     try {
@@ -209,7 +230,6 @@ class _LobbyHostScreenState extends State<LobbyHostScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ NEW: PopScope intercepts the back button so we can close the lobby first
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) async {

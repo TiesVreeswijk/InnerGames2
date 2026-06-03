@@ -17,12 +17,12 @@ class LobbyPlayer {
 
   factory LobbyPlayer.fromMap(Map<String, dynamic> map) {
     return LobbyPlayer(
-      uid: map['uid'] ?? '',
-      displayName: map['displayName'] ?? 'Player',
-      isHost: map['isHost'] ?? false,
-      isReady: map['isReady'] ?? false,
-      connected: map['connected'] ?? false,
-      selectedAvatar: map['selectedAvatar'] ?? '',
+      uid: map['uid'] as String? ?? '',
+      displayName: map['displayName'] as String? ?? 'Player',
+      isHost: map['isHost'] as bool? ?? false,
+      isReady: map['isReady'] as bool? ?? false,
+      connected: map['connected'] as bool? ?? false,
+      selectedAvatar: map['selectedAvatar'] as int?,
     );
   }
 
@@ -35,5 +35,25 @@ class LobbyPlayer {
       'connected': connected,
       'selectedAvatar': selectedAvatar,
     };
+  }
+
+  // Static method to parse a list of dynamic items into a list of LobbyPlayer instances
+  // Why? Because when we fetch the list of players from Firestore, it might come as a List<dynamic> and we need to convert it to List<LobbyPlayer>.
+  static List<LobbyPlayer> parseList(dynamic raw) {
+    if (raw == null) return [];
+    if (raw is List) {
+      return raw.map((e) {
+        if (e is LobbyPlayer) return e;
+        return LobbyPlayer(
+          uid: '',
+          displayName: e.toString(),
+          isHost: false,
+          isReady: false,
+          connected: true,
+          selectedAvatar: null,
+        );
+      }).toList();
+    }
+    return [];
   }
 }
