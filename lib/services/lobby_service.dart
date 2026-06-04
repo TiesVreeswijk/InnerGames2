@@ -3,7 +3,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../models/scenario_data.dart';
-
+import '../models/lobby/lobby_player.dart';
 
 class CreateLobbyResult {
   final String lobbyId;
@@ -49,6 +49,7 @@ class LobbyService {
 
   Future<CreateLobbyResult> createLobby2({
     required String playerName,
+    required int selectedAvatar,
   }) async {
     final user = await _requireUser();
 
@@ -57,6 +58,7 @@ class LobbyService {
     final response = await callable.call({
       'uid': user.uid,
       'displayName': playerName,
+      'selectedAvatar': selectedAvatar,
     });
 
     final data = Map<String, dynamic>.from(response.data as Map);
@@ -76,6 +78,7 @@ class LobbyService {
   Future<JoinLobbyResult> joinLobby({
     required String joinCode,
     required String playerName,
+    required int selectedAvatar,
   }) async {
     final user = await _requireUser();
 
@@ -85,6 +88,7 @@ class LobbyService {
       'uid': user.uid,
       'joinCode': joinCode,
       'displayName': playerName,
+      'selectedAvatar': selectedAvatar,
     });
 
     final data = Map<String, dynamic>.from(response.data as Map);
@@ -101,7 +105,8 @@ class LobbyService {
     );
   }
 
-  Stream<List<String>> listenToPlayerNames(String lobbyId) {
+  // This handles both players and their avatars together, so the UI can get all the data it needs from one stream instead of syncing two separate ones.
+  Stream<List<LobbyPlayer>> listenToPlayers(String lobbyId) {
     return _firestore
         .collection('lobbies')
         .doc(lobbyId)
@@ -110,30 +115,39 @@ class LobbyService {
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
-        final data = doc.data();
-
-        return data['displayName'] as String? ??
-            data['name'] as String? ??
-            'Unknown';
+        final data = Map<String, dynamic>.from(doc.data());
+        // Ensure uid is always set, even if the cloud function didn't write it
+        data['uid'] = doc.id;
+        return LobbyPlayer.fromMap(data);
       }).toList();
     });
   }
 
-  Stream<DocumentSnapshot<Map<String, dynamic>>> listenToLobby(String lobbyId) {
+  // so both streams stay in sync from the same Firestore query.
+  Stream<List<String>> listenToPlayerNames(String lobbyId) {
+    return listenToPlayers(lobbyId).map(
+      (players) => players.map((p) => p.displayName).toList(),
+    );
+  }
+
+  Stream<DocumentSnapshot<Map<String, dynamic>>> listenToLobby(
+    String lobbyId,
+  ) {
     return _firestore.collection('lobbies').doc(lobbyId).snapshots();
   }
 
-
-  // ✅ NEW: remove a player from the lobby's players subcollection
   Future<void> removePlayer(String lobbyId) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
+
       if (user == null) {
         debugPrint('removePlayer: no current user!');
         return;
       }
 
-      debugPrint('removePlayer: deleting uid=${user.uid} from lobby=$lobbyId');
+      debugPrint(
+        'removePlayer: deleting uid=${user.uid} from lobby=$lobbyId',
+      );
 
       await _firestore
           .collection('lobbies')
@@ -148,44 +162,46 @@ class LobbyService {
     }
   }
 
-  // ✅ called when host backs out before game starts — deletes the lobby
   Future<void> closeLobby(String lobbyId) async {
     try {
       await _firestore.collection('lobbies').doc(lobbyId).delete();
+
       debugPrint('closeLobby: deleted lobby $lobbyId');
     } catch (e) {
       debugPrint('closeLobby error (ignored): $e');
     }
   }
 
-  // ✅ called when game is fully finished — marks lobby as finished
-  // so all clients know the game is over, then deletes the document
   Future<void> finishAndDeleteLobby(String lobbyId) async {
     try {
       await _firestore.collection('lobbies').doc(lobbyId).update({
         'status': 'finished',
         'finishedAt': FieldValue.serverTimestamp(),
       });
-      // small delay so all clients can react to 'finished' status
+
       await Future.delayed(const Duration(seconds: 3));
+
       await _firestore.collection('lobbies').doc(lobbyId).delete();
+
       debugPrint('finishAndDeleteLobby: deleted lobby $lobbyId');
     } catch (e) {
       debugPrint('finishAndDeleteLobby error (ignored): $e');
     }
   }
 
-Future<void> startGame(String lobbyId) async {
-  // Start met scenario_1
-  await startGameWithScenario(lobbyId, 'scenario_1');
-}
+  Future<void> startGame(String lobbyId) async {
+    await startGameWithScenario(lobbyId, 'scenario_1');
+  }
 
-Future<void> startGameWithScenario(String lobbyId, String firstScenarioId) async {
-  await _firestore.collection('lobbies').doc(lobbyId).update({
-    'status': 'started',
-    'gamePhase': 'story',  // Gewijzigd van 'started' naar 'story'
-    'currentScenarioId': firstScenarioId,  // Nieuwe veld toegevoegd
-    'startedAt': FieldValue.serverTimestamp(),
-  });
-}
+  Future<void> startGameWithScenario(
+    String lobbyId,
+    String firstScenarioId,
+  ) async {
+    await _firestore.collection('lobbies').doc(lobbyId).update({
+      'status': 'started',
+      'gamePhase': 'story',
+      'currentScenarioId': firstScenarioId,
+      'startedAt': FieldValue.serverTimestamp(),
+    });
+  }
 }

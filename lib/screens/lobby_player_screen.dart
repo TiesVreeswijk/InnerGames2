@@ -4,13 +4,15 @@ import 'package:flutter/material.dart';
 import '../widgets/lobby_content.dart';
 import '../widgets/custom_app_bar.dart';
 import '../services/lobby_service.dart';
+import '../models/lobby/lobby_player.dart';
 
 class LobbyScreen extends StatefulWidget {
   final bool isHost;
   final String gameTitle;
   final String lobbyId;
   final String pin;
-  final List<String> players;
+  // ✅ FIX: List<LobbyPlayer> instead of List<String> so avatar is preserved
+  final List<LobbyPlayer> players;
 
   const LobbyScreen({
     Key? key,
@@ -28,8 +30,9 @@ class LobbyScreen extends StatefulWidget {
 class _LobbyScreenState extends State<LobbyScreen> {
   final LobbyService _lobbyService = LobbyService();
 
-  late List<String> _players;
-  StreamSubscription<List<String>>? _playersSubscription;
+  // Getting all player data instead of just displaynames, so we can show their avatars in the lobby UI and not lose that info when syncing with Firestore.
+  late List<LobbyPlayer> _players;
+  StreamSubscription<List<LobbyPlayer>>? _playersSubscription;
   StreamSubscription? _lobbySubscription;
 
   @override
@@ -38,8 +41,9 @@ class _LobbyScreenState extends State<LobbyScreen> {
 
     _players = List.from(widget.players);
 
+    // use listenToPlayers() so selectedAvatar is included
     _playersSubscription =
-        _lobbyService.listenToPlayerNames(widget.lobbyId).listen((players) {
+        _lobbyService.listenToPlayers(widget.lobbyId).listen((players) {
           if (!mounted) return;
           setState(() {
             _players = players;
@@ -50,7 +54,6 @@ class _LobbyScreenState extends State<LobbyScreen> {
           (snapshot) {
         if (!mounted) return;
 
-        // ✅ lobby was deleted (host left or closed it)
         if (!snapshot.exists) {
           _showLobbyClosedAndGoHome();
           return;
@@ -76,7 +79,6 @@ class _LobbyScreenState extends State<LobbyScreen> {
           );
         }
 
-        // keep this as fallback in case status is set before delete
         if (status == 'closed') {
           _showLobbyClosedAndGoHome();
         }
@@ -84,7 +86,6 @@ class _LobbyScreenState extends State<LobbyScreen> {
     );
   }
 
-  // ✅ NEW: remove player from Firestore and go back home
   Future<void> _leaveAndGoHome() async {
     _playersSubscription?.cancel();
     _lobbySubscription?.cancel();
@@ -93,12 +94,11 @@ class _LobbyScreenState extends State<LobbyScreen> {
     Navigator.pushNamedAndRemoveUntil(
       context,
       '/home',
-          (route) => false,
+      (route) => false,
     );
   }
 
   void _showLobbyClosedAndGoHome() {
-    // Cancel subscriptions so the listener doesn't fire again
     _playersSubscription?.cancel();
     _lobbySubscription?.cancel();
 
@@ -111,11 +111,11 @@ class _LobbyScreenState extends State<LobbyScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(); // close dialog
+              Navigator.of(context).pop();
               Navigator.pushNamedAndRemoveUntil(
                 context,
                 '/home',
-                    (route) => false,
+                (route) => false,
               );
             },
             child: const Text('OK'),
@@ -153,35 +153,6 @@ class _LobbyScreenState extends State<LobbyScreen> {
             players: _players,
           ),
         ),
-      ),
-    );
-  }
-}
-
-// Test runner - allows running this file directly
-void main() {
-  runApp(const _LobbyScreenTestApp());
-}
-
-class _LobbyScreenTestApp extends StatelessWidget {
-  const _LobbyScreenTestApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: LobbyScreen(
-        isHost: false,
-        gameTitle: 'HET SKATEPARK',
-        lobbyId: 'test-lobby-id',
-        pin: '1234',
-        players: [
-          'Tobias',
-          'Jean Pierre',
-          'Lucas',
-          'Bob',
-          'Yannick',
-          'Quan del Dingel',
-        ],
       ),
     );
   }
