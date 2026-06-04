@@ -62,15 +62,18 @@ class _ChoiceCardState extends State<ChoiceCard> {
   void _showJokerDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Joker inzetten'),
         content: const Text('Wil je deze joker inzetten om een scenario opnieuw te beantwoorden?'),
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();{
-                _showScenarioSelectSheet();
-              }
+              Navigator.of(dialogContext, rootNavigator: true).pop();
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  _showScenarioSelectSheet();
+                }
+              });
             },
             child: const Text('Ja, joker inzetten'),
           ),
@@ -82,57 +85,122 @@ class _ChoiceCardState extends State<ChoiceCard> {
   void _showScenarioSelectSheet() {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
       isScrollControlled: true,
       builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 16, bottom: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Kies een scenario om opnieuw te beantwoorden:',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.45,
-                  child: ListView.separated(
-                    itemCount: widget.allScenarios.length,
-                    separatorBuilder: (context, i) => const Divider(height: 1),
-                    itemBuilder: (context, i) {
-                      final scenario = widget.allScenarios[i];
-                      return ListTile(
-                        title: Text(scenario.title),
-                        onTap: () {
-                          Navigator.of(context).pop();
-                          setState(() {
-                            if (_jokersLeft > 0) _jokersLeft--;
-                          });
-                          // Roep de parent callback aan zodat StoryScreen het scenario kan wisselen
-                          if (widget.onChoiceSelected != null) {
-                            final choice = widget.choices.firstWhere(
-                              (c) => c.nextCardId == scenario.id,
-                              orElse: () => ChoiceData(text: scenario.title, nextCardId: scenario.id),
-                            );
-                            widget.onChoiceSelected!(choice);
-                          }
-                          // Controleer of het gekozen scenario een eindscenario is (alle antwoorden hebben lege nextScenarioId)
-                          final isEndScenario = scenario.answers.isNotEmpty && scenario.answers.every((a) => a.nextScenarioId == null);
-                          if (isEndScenario && widget.onLostLifesChanged != null) {
-                            widget.onLostLifesChanged!(widget.lostLifes + 1);
-                          }
-                        },
-                      );
-                    },
+        String? selectedScenarioId;
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final mediaQuery = MediaQuery.of(context);
+            final double screenHeight = mediaQuery.size.height;
+            final double sheetHeight = screenHeight * 0.72;
+
+            return SafeArea(
+              child: SizedBox(
+                height: screenHeight,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Container(
+                      height: sheetHeight,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 18, 14, 8),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8),
+                              child: Text(
+                                'Kies een scenario om\nopnieuw te beantwoorden:',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  height: 1.05,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFFE4007D),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 18),
+                            Expanded(
+                              child: ListView.separated(
+                                shrinkWrap: true,
+                                itemCount: widget.allScenarios.length,
+                                separatorBuilder: (context, i) => const Divider(height: 1),
+                                itemBuilder: (context, i) {
+                                  final scenario = widget.allScenarios[i];
+                                  final scenarioTitle = scenario.title.trim().isEmpty
+                                      ? scenario.text.trim()
+                                      : scenario.title.trim();
+                                  final isSelected = selectedScenarioId == scenario.id;
+
+                                  return Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(8),
+                                      onTap: () async {
+                                        setModalState(() {
+                                          selectedScenarioId = scenario.id;
+                                        });
+
+                                        await Future.delayed(const Duration(milliseconds: 180));
+                                        if (!mounted) return;
+
+                                        Navigator.of(context).pop();
+                                        setState(() {
+                                          if (_jokersLeft > 0) _jokersLeft--;
+                                        });
+                                        // Roep de parent callback aan zodat StoryScreen het scenario kan wisselen
+                                        if (widget.onChoiceSelected != null) {
+                                          final choice = widget.choices.firstWhere(
+                                            (c) => c.nextCardId == scenario.id,
+                                            orElse: () => ChoiceData(text: scenarioTitle, nextCardId: scenario.id),
+                                          );
+                                          widget.onChoiceSelected!(choice);
+                                        }
+                                        // Controleer of het gekozen scenario een eindscenario is (alle antwoorden hebben lege nextScenarioId)
+                                        final isEndScenario = scenario.answers.isNotEmpty && scenario.answers.every((a) => a.nextScenarioId == null);
+                                        if (isEndScenario && widget.onLostLifesChanged != null) {
+                                          widget.onLostLifesChanged!(widget.lostLifes + 1);
+                                        }
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                                        child: Text(
+                                          scenarioTitle,
+                                          style: TextStyle(
+                                            fontSize: 17,
+                                            color: Colors.black,
+                                            fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          
+          },
         );
       },
     );
@@ -206,8 +274,8 @@ class _ChoiceCardState extends State<ChoiceCard> {
                 'Wat doe je?',
                 style: TextStyle(
                   color: Colors.black87,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                  fontWeight: FontWeight.normal,
                 ),
               ),
               const Spacer(),
