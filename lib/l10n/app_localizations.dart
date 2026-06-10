@@ -67,6 +67,11 @@ class AppLocalizations {
     'enter_name': 'Enter your name',
     'name_too_short': 'The name must be at least 2 characters long',
     'name_hint': 'Name',
+
+    // Move pawn screen
+  "move_pawn_title": "Pawn",
+  "move_pawn_description": "The story continues!\n\nMove the pawn forward 1.",
+  "move_pawn_continue": "Continue"
   };
 
   // ─── Dutch ────────────────────────────────────────────────────────────────
@@ -113,5 +118,10 @@ class AppLocalizations {
     'enter_name': 'Vul je naam in',
     'name_too_short': 'De naam moet minimaal 2 tekens lang zijn',
     'name_hint': 'Naam',
+
+    // Move pawn screen
+  "move_pawn_title": "Pion",
+  "move_pawn_description": "Het verhaal gaat verder!\n\nBeweeg de pion 1 stap vooruit.",
+  "move_pawn_continue": "Verder"
   };
 }
