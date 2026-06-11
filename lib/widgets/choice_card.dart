@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/story_card_data.dart';
 import '../models/scenario_data.dart';
 
-
 class ChoiceCard extends StatefulWidget {
   final List<ChoiceData> choices;
   final void Function(ChoiceData choice)? onChoiceSelected;
@@ -32,23 +31,24 @@ class ChoiceCard extends StatefulWidget {
 }
 
 class _ChoiceCardState extends State<ChoiceCard> {
-    // Controleer op eindantwoord zonder nextScenarioId en toon joker dialog na 5 seconden als er nog levens zijn
-    void _checkEndScenarioAndShowJoker() async {
-      // Vind of er een gekozen antwoord is zonder nextScenarioId
-      final selected = _confirmedIndex;
-      if (selected == null) return;
-      final choice = widget.choices[selected];
-      // Alleen host mag de joker dialog zien
-      if (!widget.isHost) return;
-      // Controleer of het een eindantwoord is
-      if (choice.nextCardId.isEmpty && widget.lostLifes < 3) {
-        // Wacht 5 seconden
-        await Future.delayed(const Duration(seconds: 1));
-        if (mounted && widget.lostLifes < 3) {
-          _showJokerDialog();
-        }
+  // Controleer op eindantwoord zonder nextScenarioId en toon joker dialog na 5 seconden als er nog levens zijn
+  void _checkEndScenarioAndShowJoker() async {
+    // Vind of er een gekozen antwoord is zonder nextScenarioId
+    final selected = _confirmedIndex;
+    if (selected == null) return;
+    final choice = widget.choices[selected];
+    // Alleen host mag de joker dialog zien
+    if (!widget.isHost) return;
+    // Controleer of het een eindantwoord is
+    if (choice.nextCardId.isEmpty && widget.lostLifes < 3) {
+      // Wacht 5 seconden
+      await Future.delayed(const Duration(seconds: 1));
+      if (mounted && widget.lostLifes < 3) {
+        _showJokerDialog();
       }
     }
+  }
+
   int _jokersLeft = 2;
   int? _selectedIndex;
   int? _confirmedIndex;
@@ -64,7 +64,8 @@ class _ChoiceCardState extends State<ChoiceCard> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Joker inzetten'),
-        content: const Text('Wil je deze joker inzetten om een scenario opnieuw te beantwoorden?'),
+        content: const Text(
+            'Wil je deze joker inzetten om een scenario opnieuw te beantwoorden?'),
         actions: [
           TextButton(
             onPressed: () {
@@ -103,7 +104,8 @@ class _ChoiceCardState extends State<ChoiceCard> {
               child: SizedBox(
                 height: screenHeight,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                   child: Align(
                     alignment: Alignment.center,
                     child: Container(
@@ -136,13 +138,16 @@ class _ChoiceCardState extends State<ChoiceCard> {
                               child: ListView.separated(
                                 shrinkWrap: true,
                                 itemCount: widget.allScenarios.length,
-                                separatorBuilder: (context, i) => const Divider(height: 1),
+                                separatorBuilder: (context, i) =>
+                                    const Divider(height: 1),
                                 itemBuilder: (context, i) {
                                   final scenario = widget.allScenarios[i];
-                                  final scenarioTitle = scenario.title.trim().isEmpty
-                                      ? scenario.text.trim()
-                                      : scenario.title.trim();
-                                  final isSelected = selectedScenarioId == scenario.id;
+                                  final scenarioTitle =
+                                      scenario.title.trim().isEmpty
+                                          ? scenario.text.trim()
+                                          : scenario.title.trim();
+                                  final isSelected =
+                                      selectedScenarioId == scenario.id;
 
                                   return Material(
                                     color: Colors.transparent,
@@ -153,7 +158,8 @@ class _ChoiceCardState extends State<ChoiceCard> {
                                           selectedScenarioId = scenario.id;
                                         });
 
-                                        await Future.delayed(const Duration(milliseconds: 180));
+                                        await Future.delayed(
+                                            const Duration(milliseconds: 180));
                                         if (!mounted) return;
 
                                         Navigator.of(context).pop();
@@ -162,26 +168,37 @@ class _ChoiceCardState extends State<ChoiceCard> {
                                         });
                                         // Roep de parent callback aan zodat StoryScreen het scenario kan wisselen
                                         if (widget.onChoiceSelected != null) {
-                                          final choice = widget.choices.firstWhere(
+                                          final choice =
+                                              widget.choices.firstWhere(
                                             (c) => c.nextCardId == scenario.id,
-                                            orElse: () => ChoiceData(text: scenarioTitle, nextCardId: scenario.id),
+                                            orElse: () => ChoiceData(
+                                                text: scenarioTitle,
+                                                nextCardId: scenario.id),
                                           );
                                           widget.onChoiceSelected!(choice);
                                         }
                                         // Controleer of het gekozen scenario een eindscenario is (alle antwoorden hebben lege nextScenarioId)
-                                        final isEndScenario = scenario.answers.isNotEmpty && scenario.answers.every((a) => a.nextScenarioId == null);
-                                        if (isEndScenario && widget.onLostLifesChanged != null) {
-                                          widget.onLostLifesChanged!(widget.lostLifes + 1);
+                                        final isEndScenario =
+                                            scenario.answers.isNotEmpty &&
+                                                scenario.answers.every((a) =>
+                                                    a.nextScenarioId == null);
+                                        if (isEndScenario &&
+                                            widget.onLostLifesChanged != null) {
+                                          widget.onLostLifesChanged!(
+                                              widget.lostLifes + 1);
                                         }
                                       },
                                       child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 14),
                                         child: Text(
                                           scenarioTitle,
                                           style: TextStyle(
                                             fontSize: 17,
                                             color: Colors.black,
-                                            fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                                            fontWeight: isSelected
+                                                ? FontWeight.w900
+                                                : FontWeight.w700,
                                           ),
                                         ),
                                       ),
@@ -199,7 +216,6 @@ class _ChoiceCardState extends State<ChoiceCard> {
                 ),
               ),
             );
-          
           },
         );
       },
@@ -221,7 +237,6 @@ class _ChoiceCardState extends State<ChoiceCard> {
       });
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -249,8 +264,11 @@ class _ChoiceCardState extends State<ChoiceCard> {
     final double bottomPadding = 32;
     final double reservedSpace = 8 + 36 + 8 + 20 + 12 + 20; // title, image, etc
     final int numChoices = widget.choices.length;
-    final double estimatedNeeded = reservedSpace + numChoices * (buttonHeight + buttonMargin) + bottomPadding;
-    final double screenHeight = MediaQuery.of(context).size.height * 0.48; // ongeveer flex:3 van het scherm
+    final double estimatedNeeded = reservedSpace +
+        numChoices * (buttonHeight + buttonMargin) +
+        bottomPadding;
+    final double screenHeight = MediaQuery.of(context).size.height *
+        0.48; // ongeveer flex:3 van het scherm
 
     bool showBottomPadding = estimatedNeeded < screenHeight;
 
@@ -282,28 +300,16 @@ class _ChoiceCardState extends State<ChoiceCard> {
               // Jokers zijn niet zichtbaar voor host of speler
               // (de functionaliteit blijft behouden, alleen de weergave is verwijderd)
               const SizedBox(width: 8),
-              Image.asset(
-                widget.lostLifes >= 1
-                    ? 'assets/images/noLifes.png'
-                    : 'assets/images/lifes.png',
-                width: 36,
-                height: 36,
+              _LifeHeart(
+                isLost: widget.lostLifes >= 1,
               ),
               const SizedBox(width: 8),
-              Image.asset(
-                widget.lostLifes >= 2
-                    ? 'assets/images/noLifes.png'
-                    : 'assets/images/lifes.png',
-                width: 36,
-                height: 36,
+              _LifeHeart(
+                isLost: widget.lostLifes >= 2,
               ),
               const SizedBox(width: 8),
-              Image.asset(
-                widget.lostLifes >= 3
-                    ? 'assets/images/noLifes.png'
-                    : 'assets/images/lifes.png',
-                width: 36,
-                height: 36,
+              _LifeHeart(
+                isLost: widget.lostLifes >= 3,
               ),
               const SizedBox(width: 8),
             ],
@@ -311,16 +317,151 @@ class _ChoiceCardState extends State<ChoiceCard> {
           const SizedBox(height: 4),
           // Geen scroll, alle antwoorden zichtbaar maken
           ...widget.choices.asMap().entries.map(
-            (entry) => _ChoiceButton(
-              choice: entry.value,
-              selected: _selectedIndex == entry.key,
-              isLocked: widget.isLocked,
-              onTap: () => _handleChoiceTap(entry.key),
-              bottomPadding: showBottomPadding ? 40 : 16,
-            ),
-          ),
-          if (showBottomPadding) const SizedBox(height: 32), // extra padding onderaan alleen als er ruimte is
+                (entry) => _ChoiceButton(
+                  choice: entry.value,
+                  selected: _selectedIndex == entry.key,
+                  isLocked: widget.isLocked,
+                  onTap: () => _handleChoiceTap(entry.key),
+                  bottomPadding: showBottomPadding ? 40 : 16,
+                ),
+              ),
+          if (showBottomPadding)
+            const SizedBox(
+                height: 32), // extra padding onderaan alleen als er ruimte is
         ],
+      ),
+    );
+  }
+}
+
+class _LifeHeart extends StatefulWidget {
+  final bool isLost;
+
+  const _LifeHeart({
+    required this.isLost,
+  });
+
+  @override
+  State<_LifeHeart> createState() => _LifeHeartState();
+}
+
+class _LifeHeartState extends State<_LifeHeart>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  int _animationRun = 0;
+
+  static const _filledHeart = 'assets/images/lifes.png';
+  static const _emptyHeart = 'assets/images/noLifes.png';
+  static const _heartBreak = 'assets/images/hearbreake.gif';
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 4300),
+    );
+
+    if (widget.isLost) {
+      _controller.value = 1;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _LifeHeart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (!oldWidget.isLost && widget.isLost) {
+      _animationRun++;
+      _controller.forward(from: 0);
+    } else if (oldWidget.isLost && !widget.isLost) {
+      _controller.reset();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  double _intervalValue(double start, double end, Curve curve) {
+    final value = ((_controller.value - start) / (end - start)).clamp(0.0, 1.0);
+    return curve.transform(value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 36,
+      height: 36,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          final firstGrow = _intervalValue(0, 0.16, Curves.easeOutBack);
+          final firstSettle = _intervalValue(0.16, 0.25, Curves.easeInOut);
+          final secondGrow = _intervalValue(0.25, 0.38, Curves.easeOutBack);
+          final fullOut = _intervalValue(0.42, 0.48, Curves.easeIn);
+          final breakIn = _intervalValue(0.46, 0.52, Curves.easeOut);
+          final breakOut = _intervalValue(0.92, 0.96, Curves.easeIn);
+          final emptyIn = _intervalValue(0.94, 1, Curves.easeOutBack);
+
+          final firstPulseScale = 1 + (3.2 * firstGrow);
+          final settledScale = firstPulseScale - (0.75 * firstSettle);
+          final fullScale = settledScale + (1.05 * secondGrow);
+          final fullOpacity =
+              widget.isLost ? (1 - fullOut).clamp(0.0, 1.0) : 1.0;
+          final heartBreakOpacity =
+              widget.isLost ? (breakIn * (1 - breakOut)).clamp(0.0, 1.0) : 0.0;
+          final emptyOpacity = widget.isLost ? emptyIn.clamp(0.0, 1.0) : 0.0;
+
+          return Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              if (!widget.isLost || fullOpacity > 0)
+                Opacity(
+                  opacity: fullOpacity,
+                  child: Transform.scale(
+                    alignment: Alignment.center,
+                    scale: fullScale,
+                    child: Image.asset(
+                      _filledHeart,
+                      width: 36,
+                      height: 36,
+                    ),
+                  ),
+                ),
+              if (heartBreakOpacity > 0)
+                Opacity(
+                  opacity: heartBreakOpacity,
+                  child: Transform.scale(
+                    alignment: Alignment.center,
+                    scale: 4.7,
+                    child: Image.asset(
+                      _heartBreak,
+                      key: ValueKey('heart-break-$_animationRun'),
+                      width: 36,
+                      height: 36,
+                    ),
+                  ),
+                ),
+              if (widget.isLost)
+                Opacity(
+                  opacity: emptyOpacity,
+                  child: Transform.scale(
+                    alignment: Alignment.center,
+                    scale: 1,
+                    child: Image.asset(
+                      _emptyHeart,
+                      width: 36,
+                      height: 36,
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -348,7 +489,8 @@ class _ChoiceButton extends StatelessWidget {
       child: Container(
         width: double.infinity,
         margin: const EdgeInsets.only(bottom: 10),
-        padding: EdgeInsets.fromLTRB(18, 16, 18, 16), // minder padding rondom tekst
+        padding:
+            EdgeInsets.fromLTRB(18, 16, 18, 16), // minder padding rondom tekst
         decoration: BoxDecoration(
           color: selected ? const Color(0xFF273583) : const Color(0xFF5F699F),
           borderRadius: BorderRadius.circular(10),
