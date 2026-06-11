@@ -299,8 +299,8 @@ class _JokerJumpscareDialogState extends State<_JokerJumpscareDialog>
       child: Material(
         color: Colors.transparent,
         child: Stack(
-        children: [
-          Positioned.fill(
+          children: [
+            Positioned.fill(
             child: AnimatedBuilder(
               animation: _controller,
               builder: (context, child) {
