@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../models/scenario_data.dart';
 import '../models/story_card_data.dart';
+import '../screens/move_pawn_screen.dart';
 import '../services/scenario_service.dart';
 import '../widgets/choice_card.dart';
 import '../widgets/intervention_card.dart';
@@ -100,6 +101,14 @@ class _StoryScreenState extends State<StoryScreen> {
     _scenarioAutoAdvanceTimer?.cancel();
     _lobbyStatusSubscription?.cancel();
     super.dispose();
+  }
+
+  /// Show the Move Pawn interstitial and wait for the player to tap Continue.
+  Future<void> _showMovePawn() async {
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const MovePawnScreen()),
+    );
   }
 
   Future<void> _loadAllScenarios() async {
@@ -600,6 +609,9 @@ class _StoryScreenState extends State<StoryScreen> {
                                 await Future.delayed(
                                   const Duration(milliseconds: 450),
                                 );
+
+                                // Show pawn screen before advancing to next story.
+                                await _showMovePawn();
 
                                 if (isHost &&
                                     nextCardId != null &&

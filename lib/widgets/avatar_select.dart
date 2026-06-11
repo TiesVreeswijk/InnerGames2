@@ -172,7 +172,7 @@ class _AvatarSelectionGridState extends State<AvatarSelectionGrid> {
 class AvatarData {
   static List<String> getDefaultAvatars() {
     return [
-      'assets/images/3d_avatar_1.png', //afbeeldingen werken nu niet
+      'assets/images/3d_avatar_1.png',
       'assets/images/3d_avatar_2.png',
       'assets/images/3d_avatar_3.png',
       'assets/images/3d_avatar_4.png',

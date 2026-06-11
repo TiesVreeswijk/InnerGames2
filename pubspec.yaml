@@ -35,6 +35,8 @@ dependencies:
   # Animated Text
   animated_text_kit: ^4.3.0
 
+  
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -45,6 +47,7 @@ flutter:
   
   assets:
     - assets/images/
+    - assets/gifs/
   
   # SF Pro font - user will add font files
   # fonts:
