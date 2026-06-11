@@ -35,7 +35,7 @@ class ChoiceCard extends StatefulWidget {
 }
 
 class _ChoiceCardState extends State<ChoiceCard> {
-  // Controleer op eindantwoord zonder nextScenarioId en toon joker dialog na 5 seconden als er nog levens zijn
+  // Controleer op eindantwoord zonder nextCardId en toon joker dialog na 1 seconde als er nog levens zijn
   void _checkEndScenarioAndShowJoker() async {
     // Vind of er een gekozen antwoord is zonder nextScenarioId
     final selected = _confirmedIndex;
