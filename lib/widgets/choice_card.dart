@@ -460,7 +460,7 @@ class _JokerJumpscareDialogState extends State<_JokerJumpscareDialog>
               ),
             ),
           ),
-        ],
+          ],
         ),
       ),
     );
