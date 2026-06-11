@@ -54,9 +54,55 @@ class _ChoiceCardState extends State<ChoiceCard> {
   int? _confirmedIndex;
   bool _wasEndScenario = false;
 
+  // GlobalKeys to locate each heart on screen for the overlay animation
+  final List<GlobalKey> _heartKeys = [GlobalKey(), GlobalKey(), GlobalKey()];
+  OverlayEntry? _heartOverlayEntry;
+
   bool get _isEndScenario {
     return widget.choices.isNotEmpty &&
         widget.choices.every((c) => c.nextCardId.isEmpty);
+  }
+
+  @override
+  void didUpdateWidget(covariant ChoiceCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // When a life is lost, play the break animation above all widgets via Overlay
+    if (widget.lostLifes > oldWidget.lostLifes) {
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (mounted) {
+      _playHeartBreakOverlay(widget.lostLifes - 1);
+    }
+  });
+    }
+  }
+
+  void _playHeartBreakOverlay(int heartIndex) {
+    final key = _heartKeys[heartIndex];
+    final box = key.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null) return;
+
+    // Get the screen-space center of the heart icon
+    final position = box.localToGlobal(box.size.center(Offset.zero));
+
+    _heartOverlayEntry?.remove();
+    _heartOverlayEntry = OverlayEntry(
+      builder: (_) => HeartBreakOverlay(
+        position: position,
+        onDone: () {
+          _heartOverlayEntry?.remove();
+          _heartOverlayEntry = null;
+        },
+      ),
+    );
+    Overlay.of(context).insert(_heartOverlayEntry!);
+  }
+
+  @override
+  void dispose() {
+    // Clean up any active overlay when widget is removed
+    _heartOverlayEntry?.remove();
+    _heartOverlayEntry = null;
+    super.dispose();
   }
 
   void _showJokerDialog() {
@@ -301,14 +347,17 @@ class _ChoiceCardState extends State<ChoiceCard> {
               // (de functionaliteit blijft behouden, alleen de weergave is verwijderd)
               const SizedBox(width: 8),
               _LifeHeart(
+                heartKey: _heartKeys[0],
                 isLost: widget.lostLifes >= 1,
               ),
               const SizedBox(width: 8),
               _LifeHeart(
+                heartKey: _heartKeys[1],
                 isLost: widget.lostLifes >= 2,
               ),
               const SizedBox(width: 8),
               _LifeHeart(
+                heartKey: _heartKeys[2],
                 isLost: widget.lostLifes >= 3,
               ),
               const SizedBox(width: 8),
@@ -334,18 +383,22 @@ class _ChoiceCardState extends State<ChoiceCard> {
   }
 }
 
-class _LifeHeart extends StatefulWidget {
-  final bool isLost;
+// HeartBreakOverlay — renders the full grow + break + empty animation
+class HeartBreakOverlay extends StatefulWidget {
+  final Offset position; // screen-space center of the heart icon
+  final VoidCallback onDone;
 
-  const _LifeHeart({
-    required this.isLost,
-  });
+  const HeartBreakOverlay({
+    Key? key,
+    required this.position,
+    required this.onDone,
+  }) : super(key: key);
 
   @override
-  State<_LifeHeart> createState() => _LifeHeartState();
+  State<HeartBreakOverlay> createState() => _HeartBreakOverlayState();
 }
 
-class _LifeHeartState extends State<_LifeHeart>
+class _HeartBreakOverlayState extends State<HeartBreakOverlay>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   int _animationRun = 0;
@@ -361,22 +414,8 @@ class _LifeHeartState extends State<_LifeHeart>
       vsync: this,
       duration: const Duration(milliseconds: 4300),
     );
-
-    if (widget.isLost) {
-      _controller.value = 1;
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant _LifeHeart oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    if (!oldWidget.isLost && widget.isLost) {
-      _animationRun++;
-      _controller.forward(from: 0);
-    } else if (oldWidget.isLost && !widget.isLost) {
-      _controller.reset();
-    }
+    _animationRun++;
+    _controller.forward().whenComplete(widget.onDone);
   }
 
   @override
@@ -392,76 +431,112 @@ class _LifeHeartState extends State<_LifeHeart>
 
   @override
   Widget build(BuildContext context) {
+    // Position the animation centered on the original heart icon's screen location
+    return Positioned(
+      left: widget.position.dx - 18, // 18 = half of 36px icon width
+      top: widget.position.dy - 18,
+      child: IgnorePointer(
+        child: SizedBox(
+          width: 36,
+          height: 36,
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              final firstGrow = _intervalValue(0, 0.16, Curves.easeOutBack);
+              final firstSettle = _intervalValue(0.16, 0.25, Curves.easeInOut);
+              final secondGrow = _intervalValue(0.25, 0.38, Curves.easeOutBack);
+              final fullOut = _intervalValue(0.42, 0.48, Curves.easeIn);
+              final breakIn = _intervalValue(0.46, 0.52, Curves.easeOut);
+              final breakOut = _intervalValue(0.92, 0.96, Curves.easeIn);
+              final emptyIn = _intervalValue(0.94, 1, Curves.easeOutBack);
+
+              final firstPulseScale = 1 + (3.2 * firstGrow);
+              final settledScale = firstPulseScale - (0.75 * firstSettle);
+              final fullScale = settledScale + (1.05 * secondGrow);
+              final fullOpacity = (1 - fullOut).clamp(0.0, 1.0);
+              final heartBreakOpacity =
+                  (breakIn * (1 - breakOut)).clamp(0.0, 1.0);
+              final emptyOpacity = emptyIn.clamp(0.0, 1.0);
+
+              return Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  if (fullOpacity > 0)
+                    Opacity(
+                      opacity: fullOpacity,
+                      child: Transform.scale(
+                        alignment: Alignment.center,
+                        scale: fullScale,
+                        child: Image.asset(
+                          _filledHeart,
+                          width: 36,
+                          height: 36,
+                        ),
+                      ),
+                    ),
+                  if (heartBreakOpacity > 0)
+                    Opacity(
+                      opacity: heartBreakOpacity,
+                      child: Transform.scale(
+                        alignment: Alignment.center,
+                        scale: 4.7,
+                        child: Image.asset(
+                          _heartBreak,
+                          key: ValueKey('heart-break-$_animationRun'),
+                          width: 36,
+                          height: 36,
+                        ),
+                      ),
+                    ),
+                  if (emptyOpacity > 0)
+                    Opacity(
+                      opacity: emptyOpacity,
+                      child: Transform.scale(
+                        alignment: Alignment.center,
+                        scale: 1,
+                        child: Image.asset(
+                          _emptyHeart,
+                          width: 36,
+                          height: 36,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// _LifeHeart — now only renders the static heart icon (filled or empty).
+// The growing/breaking animation is handled by HeartBreakOverlay instead,
+// so it can render above all other widgets via the Overlay layer.
+class _LifeHeart extends StatelessWidget {
+  final bool isLost;
+  final GlobalKey heartKey;
+
+  static const _filledHeart = 'assets/images/lifes.png';
+  static const _emptyHeart = 'assets/images/noLifes.png';
+
+  const _LifeHeart({
+    required this.isLost,
+    required this.heartKey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return SizedBox(
+      key: heartKey,
       width: 36,
       height: 36,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          final firstGrow = _intervalValue(0, 0.16, Curves.easeOutBack);
-          final firstSettle = _intervalValue(0.16, 0.25, Curves.easeInOut);
-          final secondGrow = _intervalValue(0.25, 0.38, Curves.easeOutBack);
-          final fullOut = _intervalValue(0.42, 0.48, Curves.easeIn);
-          final breakIn = _intervalValue(0.46, 0.52, Curves.easeOut);
-          final breakOut = _intervalValue(0.92, 0.96, Curves.easeIn);
-          final emptyIn = _intervalValue(0.94, 1, Curves.easeOutBack);
-
-          final firstPulseScale = 1 + (3.2 * firstGrow);
-          final settledScale = firstPulseScale - (0.75 * firstSettle);
-          final fullScale = settledScale + (1.05 * secondGrow);
-          final fullOpacity =
-              widget.isLost ? (1 - fullOut).clamp(0.0, 1.0) : 1.0;
-          final heartBreakOpacity =
-              widget.isLost ? (breakIn * (1 - breakOut)).clamp(0.0, 1.0) : 0.0;
-          final emptyOpacity = widget.isLost ? emptyIn.clamp(0.0, 1.0) : 0.0;
-
-          return Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.center,
-            children: [
-              if (!widget.isLost || fullOpacity > 0)
-                Opacity(
-                  opacity: fullOpacity,
-                  child: Transform.scale(
-                    alignment: Alignment.center,
-                    scale: fullScale,
-                    child: Image.asset(
-                      _filledHeart,
-                      width: 36,
-                      height: 36,
-                    ),
-                  ),
-                ),
-              if (heartBreakOpacity > 0)
-                Opacity(
-                  opacity: heartBreakOpacity,
-                  child: Transform.scale(
-                    alignment: Alignment.center,
-                    scale: 4.7,
-                    child: Image.asset(
-                      _heartBreak,
-                      key: ValueKey('heart-break-$_animationRun'),
-                      width: 36,
-                      height: 36,
-                    ),
-                  ),
-                ),
-              if (widget.isLost)
-                Opacity(
-                  opacity: emptyOpacity,
-                  child: Transform.scale(
-                    alignment: Alignment.center,
-                    scale: 1,
-                    child: Image.asset(
-                      _emptyHeart,
-                      width: 36,
-                      height: 36,
-                    ),
-                  ),
-                ),
-            ],
-          );
-        },
+      child: Image.asset(
+        isLost ? _emptyHeart : _filledHeart,
+        width: 36,
+        height: 36,
       ),
     );
   }
