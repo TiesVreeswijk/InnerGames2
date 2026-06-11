@@ -44,10 +44,10 @@ class _ChoiceCardState extends State<ChoiceCard> {
     // Alleen host mag de joker dialog zien
     if (!widget.isHost) return;
     // Controleer of het een eindantwoord is
-    if (choice.nextCardId.isEmpty && widget.lostLifes < 3) {
+    if (choice.nextCardId.isEmpty && widget.lostLifes < 3 && _jokersLeft > 0) {
       // Wacht even voordat de jumpscare verschijnt
       await Future.delayed(const Duration(seconds: 1));
-      if (mounted && widget.lostLifes < 3) {
+      if (mounted && widget.lostLifes < 3 && _jokersLeft > 0) {
         _showJokerDialog();
       }
     }
