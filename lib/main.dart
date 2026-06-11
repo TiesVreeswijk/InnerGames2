@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:tweekracht_sociality/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
-// Import ONLY the screens we created that work
 
 import 'package:provider/provider.dart';
 
-// Import ONLY the screens we created that work
 import 'screens/Choosing_story.dart';
 import 'screens/welcome_screenV2.dart';
 import 'screens/home_screenV2.dart';
@@ -25,6 +23,7 @@ import 'screens/lobby_player_screen.dart' as lobby_player;
 
 import 'providers/app_settings_provider.dart';
 import 'services/auth_service.dart';
+import '../models/lobby/lobby_player.dart'; 
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,7 +55,6 @@ class SocialityApp extends StatelessWidget {
             navigatorObservers: [routeObserver, homeRouteObserver],
             builder: (context, child) {
               final mediaQuery = MediaQuery.of(context);
-
               return MediaQuery(
                 data: mediaQuery.copyWith(
                   textScaler: TextScaler.linear(appSettings.textScale),
@@ -74,219 +72,221 @@ class SocialityApp extends StatelessWidget {
                     builder: (context) => const HomeScreenv2(),
                   );
 
-          case '/splash':
-            return MaterialPageRoute(
-              builder: (context) => const SplashScreen(),
-            );
+                case '/splash':
+                  return MaterialPageRoute(
+                    builder: (context) => const SplashScreen(),
+                  );
 
-          case '/splash2':
-            return MaterialPageRoute(
-              builder: (context) => const SplashScreen2(),
-            );
+                case '/splash2':
+                  return MaterialPageRoute(
+                    builder: (context) => const SplashScreen2(),
+                  );
 
-          case '/welcome':
-            return MaterialPageRoute(
-              builder: (context) => const WelcomeScreenv2(),
-            );
+                case '/welcome':
+                  return MaterialPageRoute(
+                    builder: (context) => const WelcomeScreenv2(),
+                  );
 
-          case '/home':
-            return MaterialPageRoute(
-              builder: (context) => const HomeScreenv2(),
-            );
+                case '/home':
+                  return MaterialPageRoute(
+                    builder: (context) => const HomeScreenv2(),
+                  );
 
-          case '/settings':
-            return MaterialPageRoute(
-              builder: (context) => const SettingsScreen(),
-            );
+                case '/settings':
+                  return MaterialPageRoute(
+                    builder: (context) => const SettingsScreen(),
+                  );
 
-          case '/ChoosingStories':
-            final args = settings.arguments as Map<String, dynamic>?;
-            return MaterialPageRoute(
-              // ✅ FIX: extract args here and pass as constructor params
-              // so ChoosingStoryScreen doesn't need to use ModalRoute
-              builder: (context) => ChoosingStoryScreen(
-                hostName: args?['hostName'] as String?,
-                selectedAvatar: args?['selectedAvatar'] as int?,
-              ),
-            );
+                case '/ChoosingStories':
+                  final args = settings.arguments as Map<String, dynamic>?;
+                  return MaterialPageRoute(
+                    builder: (context) => ChoosingStoryScreen(
+                      hostName: args?['hostName'] as String?,
+                      selectedAvatar: args?['selectedAvatar'] as int?,
+                    ),
+                  );
 
-          case '/host-name-entry':
-            final args = settings.arguments as Map<String, dynamic>?;
-            return MaterialPageRoute(
-              builder: (context) => HostNameEntryScreen(
-                storyTitle: args?['storyTitle'] as String? ?? 'HET SKATEPARK',
-              ),
-            );
+                case '/host-name-entry':
+                  final args = settings.arguments as Map<String, dynamic>?;
+                  return MaterialPageRoute(
+                    builder: (context) => HostNameEntryScreen(
+                      storyTitle:
+                          args?['storyTitle'] as String? ?? 'HET SKATEPARK',
+                    ),
+                  );
 
-          case '/host-share':
-            final args = settings.arguments as Map<String, dynamic>?;
-            print('📍 Host share args: $args');
+                case '/host-share':
+                  final args = settings.arguments as Map<String, dynamic>?;
+                  print('📍 Host share args: $args');
+                  return MaterialPageRoute(
+                    builder: (context) => HostShareScreen(
+                      pin: args?['pin'] as String? ?? '1234',
+                      storyTitle:
+                          args?['storyTitle'] as String? ?? 'HET SKATEPARK',
+                      hostName: args?['hostName'] as String? ?? 'Host',
+                    ),
+                  );
 
-            return MaterialPageRoute(
-              builder: (context) => HostShareScreen(
-                pin: args?['pin'] as String? ?? '1234',
-                storyTitle: args?['storyTitle'] as String? ?? 'HET SKATEPARK',
-                hostName: args?['hostName'] as String? ?? 'Host',
-              ),
-            );
+                case '/join-pin':
+                  final args = settings.arguments as Map<String, dynamic>?;
+                  print('📍 Navigating to join-pin screen, args: $args');
+                  return MaterialPageRoute(
+                    builder: (context) => JoinPinScreen(
+                      playerName: args?['playerName'] as String?,
+                      selectedAvatar: args?['selectedAvatar'] as int?,
+                      gameTitle: args?['gameTitle'] as String?,
+                      pin: args?['pin'] as String?,
+                    ),
+                  );
 
-          case '/join-pin':
-            final args = settings.arguments as Map<String, dynamic>?;
-            print('📍 Navigating to join-pin screen, args: $args');
-            return MaterialPageRoute(
-              // ✅ FIX: pass args as constructor params so ModalRoute isn't needed
-              builder: (context) => JoinPinScreen(
-                playerName: args?['playerName'] as String?,
-                selectedAvatar: args?['selectedAvatar'] as int?,
-                gameTitle: args?['gameTitle'] as String?,
-                pin: args?['pin'] as String?,
-              ),
-            );
+                case '/create-join':
+                  return MaterialPageRoute(
+                    builder: (context) => const CreateJoinScreen(),
+                  );
 
-          case '/create-join':
-            return MaterialPageRoute(
-              builder: (context) => const CreateJoinScreen(),
-            );
+                case '/share-game':
+                  return MaterialPageRoute(
+                    builder: (context) => const ShareGameScreen(),
+                  );
 
-          case '/share-game':
-            return MaterialPageRoute(
-              builder: (context) => const ShareGameScreen(),
-            );
+                case '/name-entry':
+                  final args = settings.arguments as Map<String, dynamic>?;
+                  return MaterialPageRoute(
+                    builder: (context) => NameEntryScreen(
+                      pin: args?['pin'] as String? ?? '1234',
+                    ),
+                  );
 
-          case '/name-entry':
-            final args = settings.arguments as Map<String, dynamic>?;
-            return MaterialPageRoute(
-              builder: (context) => NameEntryScreen(
-                pin: args?['pin'] as String? ?? '1234',
-              ),
-            );
-
-          case '/join-qr':
-            return MaterialPageRoute(
-              builder: (context) => Scaffold(
-                backgroundColor: const Color(0xFFF5E6D3),
-                appBar: AppBar(
-                  backgroundColor: Colors.white,
-                  title: const Text('QR Scanner'),
-                ),
-                body: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.qr_code_scanner, size: 64, color: Color(0xFF2C3E7E)),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'QR Scanner - Coming Soon',
-                        style: TextStyle(fontSize: 18),
+                case '/join-qr':
+                  return MaterialPageRoute(
+                    builder: (context) => Scaffold(
+                      backgroundColor: const Color(0xFFF5E6D3),
+                      appBar: AppBar(
+                        backgroundColor: Colors.white,
+                        title: const Text('QR Scanner'),
                       ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFE91E63),
+                      body: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.qr_code_scanner,
+                                size: 64, color: Color(0xFF2C3E7E)),
+                            const SizedBox(height: 16),
+                            const Text('QR Scanner - Coming Soon',
+                                style: TextStyle(fontSize: 18)),
+                            const SizedBox(height: 24),
+                            ElevatedButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFE91E63)),
+                              child: const Text('Go Back'),
+                            ),
+                          ],
                         ),
-                        child: const Text('Go Back'),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-            );
+                    ),
+                  );
 
-          case '/lobby':
-            final args = settings.arguments as Map<String, dynamic>? ?? {};
-            print('📍 Lobby args: $args');
+                case '/lobby':
+                  final args =
+                      settings.arguments as Map<String, dynamic>? ?? {};
+                  print('📍 Lobby args: $args');
+                  return MaterialPageRoute(
+                    builder: (context) => lobby_player.LobbyScreen(
+                      isHost: args['isHost'] as bool? ?? false,
+                      gameTitle:
+                          args['gameTitle'] as String? ?? 'HET SKATEPARK',
+                      lobbyId: args['lobbyId'] as String,
+                      pin: args['pin'] as String? ??
+                          args['joinCode'] as String? ??
+                          '',
+                      players: LobbyPlayer.parseList(args['players']), // ✅
+                    ),
+                  );
 
-            return MaterialPageRoute(
-              builder: (context) => lobby_player.LobbyScreen(
-                isHost: args['isHost'] as bool? ?? false,
-                gameTitle: args['gameTitle'] as String? ?? 'HET SKATEPARK',
-                lobbyId: args['lobbyId'] as String,
-                pin: args['pin'] as String? ?? args['joinCode'] as String? ?? '',
-                players: (args['players'] as List<dynamic>?)?.cast<String>() ?? [],
-              ),
-            );
+                case '/lobby_player':
+                  final args =
+                      settings.arguments as Map<String, dynamic>? ?? {};
+                  print('📍 Lobby player args: $args');
+                  return MaterialPageRoute(
+                    builder: (context) => lobby_player.LobbyScreen(
+                      isHost: args['isHost'] as bool? ?? false,
+                      gameTitle:
+                          args['gameTitle'] as String? ?? 'HET SKATEPARK',
+                      lobbyId: args['lobbyId'] as String,
+                      pin: args['pin'] as String? ??
+                          args['joinCode'] as String? ??
+                          '',
+                      players: LobbyPlayer.parseList(args['players']), // ✅
+                    ),
+                  );
 
-          case '/lobby_player':
-            final args = settings.arguments as Map<String, dynamic>? ?? {};
-            print('📍 Lobby player args: $args');
+                case '/lobby_host':
+                  final args = settings.arguments as Map<String, dynamic>?;
+                  print('📍 Lobby host args: $args');
+                  return MaterialPageRoute(
+                    builder: (context) => lobby_host.LobbyHostScreen(
+                      isHost: args?['isHost'] as bool? ?? true,
+                      gameTitle:
+                          args?['gameTitle'] as String? ?? 'HET SKATEPARK',
+                      pin: args?['pin'] as String? ?? '',
+                      lobbyId: args?['lobbyId'] as String? ?? '',
+                      players: LobbyPlayer.parseList(args?['players']), // ✅
+                      hostName: args?['hostName'] as String?,
+                      selectedAvatar: args?['selectedAvatar'] as int?,
+                    ),
+                  );
 
-            return MaterialPageRoute(
-              builder: (context) => lobby_player.LobbyScreen(
-                isHost: args['isHost'] as bool? ?? false,
-                gameTitle: args['gameTitle'] as String? ?? 'HET SKATEPARK',
-                lobbyId: args['lobbyId'] as String,
-                pin: args['pin'] as String? ?? args['joinCode'] as String? ?? '',
-                players: (args['players'] as List<dynamic>?)?.cast<String>() ?? [],
-              ),
-            );
+                case '/story':
+                  return MaterialPageRoute(
+                    builder: (context) => const StoryScreen(),
+                    settings: settings,
+                  );
 
-          case '/lobby_host':
-            final args = settings.arguments as Map<String, dynamic>?;
-            print('📍 Lobby host args: $args');
+                case '/avatar-selection':
+                  final args = settings.arguments as Map<String, dynamic>?;
+                  return MaterialPageRoute(
+                    builder: (context) =>
+                        AvatarSelectionScreen(userData: args),
+                  );
 
-            return MaterialPageRoute(
-              builder: (context) => lobby_host.LobbyHostScreen(
-                isHost: args?['isHost'] as bool? ?? true,
-                gameTitle: args?['gameTitle'] as String? ?? 'HET SKATEPARK',
-                pin: args?['pin'] as String? ?? '',
-                lobbyId: args?['lobbyId'] as String? ?? '',
-                players: List<String>.from(args?['players'] ?? []),
-                hostName: args?['hostName'] as String?,
-                // ✅ FIX: pass selectedAvatar through to the screen
-                selectedAvatar: args?['selectedAvatar'] as int?,
-              ),
-            );
+                case '/game':
+                  return MaterialPageRoute(
+                    builder: (context) => const StoryScreen(),
+                    settings: settings,
+                  );
 
-          case '/story':
-            return MaterialPageRoute(
-              builder: (context) => const StoryScreen(),
-              settings: settings,
-            );
-
-          case '/avatar-selection':
-            final args = settings.arguments as Map<String, dynamic>?;
-            return MaterialPageRoute(
-              builder: (context) => AvatarSelectionScreen(userData: args),
-            );
-
-          case '/game':
-            return MaterialPageRoute(
-              builder: (context) => const StoryScreen(),
-              settings: settings,
-            );
-
-          case '/game-placeholder':
-            return MaterialPageRoute(
-              builder: (context) => Scaffold(
-                backgroundColor: const Color(0xFFD89B6A),
-                appBar: AppBar(
-                  backgroundColor: Colors.white,
-                  title: const Text('Game Starting'),
-                ),
-                body: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.sports_esports, size: 64, color: Color(0xFF2C3E7E)),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Game will start here...',
-                        style: TextStyle(fontSize: 18),
+                case '/game-placeholder':
+                  return MaterialPageRoute(
+                    builder: (context) => Scaffold(
+                      backgroundColor: const Color(0xFFD89B6A),
+                      appBar: AppBar(
+                        backgroundColor: Colors.white,
+                        title: const Text('Game Starting'),
                       ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFE91E63),
+                      body: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.sports_esports,
+                                size: 64, color: Color(0xFF2C3E7E)),
+                            const SizedBox(height: 16),
+                            const Text('Game will start here...',
+                                style: TextStyle(fontSize: 18)),
+                            const SizedBox(height: 24),
+                            ElevatedButton(
+                              onPressed: () =>
+                                  Navigator.pushNamedAndRemoveUntil(
+                                      context, '/home', (route) => false),
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFE91E63)),
+                              child: const Text('Back to Home'),
+                            ),
+                          ],
                         ),
-                        child: const Text('Back to Home'),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-            );
+                    ),
+                  );
 
                 default:
                   print('❌ Route not found: ${settings.name}');
@@ -300,18 +300,18 @@ class SocialityApp extends StatelessWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                            const Icon(Icons.error_outline,
+                                size: 64, color: Colors.red),
                             const SizedBox(height: 16),
-                            Text(
-                              'Route "${settings.name}" not found',
-                              style: const TextStyle(fontSize: 18),
-                            ),
+                            Text('Route "${settings.name}" not found',
+                                style: const TextStyle(fontSize: 18)),
                             const SizedBox(height: 24),
                             ElevatedButton(
-                              onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
+                              onPressed: () =>
+                                  Navigator.pushReplacementNamed(
+                                      context, '/home'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFE91E63),
-                              ),
+                                  backgroundColor: const Color(0xFFE91E63)),
                               child: const Text('Go Home'),
                             ),
                           ],
@@ -323,8 +323,7 @@ class SocialityApp extends StatelessWidget {
             },
           );
         },
-      )
+      ),
     );
   }
 }
-

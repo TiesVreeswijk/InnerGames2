@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import '../models/story_card_data.dart';
 import '../models/scenario_data.dart';
 
-
 class ChoiceCard extends StatefulWidget {
   final List<ChoiceData> choices;
   final void Function(ChoiceData choice)? onChoiceSelected;
@@ -45,21 +44,68 @@ class _ChoiceCardState extends State<ChoiceCard> {
     if (!widget.isHost) return;
     // Controleer of het een eindantwoord is
     if (choice.nextCardId.isEmpty && widget.lostLifes < 3 && _jokersLeft > 0) {
-      // Wacht even voordat de jumpscare verschijnt
+      // Wacht 1 seconde
       await Future.delayed(const Duration(seconds: 1));
       if (mounted && widget.lostLifes < 3 && _jokersLeft > 0) {
         _showJokerDialog();
       }
     }
   }
+
   int _jokersLeft = 2;
   int? _selectedIndex;
   int? _confirmedIndex;
   bool _wasEndScenario = false;
 
+  // GlobalKeys to locate each heart on screen for the overlay animation
+  final List<GlobalKey> _heartKeys = [GlobalKey(), GlobalKey(), GlobalKey()];
+  OverlayEntry? _heartOverlayEntry;
+
   bool get _isEndScenario {
     return widget.choices.isNotEmpty &&
         widget.choices.every((c) => c.nextCardId.isEmpty);
+  }
+
+  @override
+  void didUpdateWidget(covariant ChoiceCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // When a life is lost, play the break animation above all widgets via Overlay
+    if (widget.lostLifes > oldWidget.lostLifes) {
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (mounted) {
+      _playHeartBreakOverlay(widget.lostLifes - 1);
+    }
+  });
+    }
+  }
+
+  void _playHeartBreakOverlay(int heartIndex) {
+    final key = _heartKeys[heartIndex];
+    final box = key.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null) return;
+
+    // Get the screen-space center of the heart icon
+    final position = box.localToGlobal(box.size.center(Offset.zero));
+
+    _heartOverlayEntry?.remove();
+    _heartOverlayEntry = OverlayEntry(
+      builder: (_) => HeartBreakOverlay(
+        position: position,
+        onDone: () {
+          _heartOverlayEntry?.remove();
+          _heartOverlayEntry = null;
+        },
+      ),
+    );
+    Overlay.of(context).insert(_heartOverlayEntry!);
+  }
+
+  @override
+  void dispose() {
+    // Clean up any active overlay when widget is removed
+    _heartOverlayEntry?.remove();
+    _heartOverlayEntry = null;
+    super.dispose();
   }
 
   void _showJokerDialog() {
@@ -75,57 +121,137 @@ class _ChoiceCardState extends State<ChoiceCard> {
   void _showScenarioSelectSheet() {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
       isScrollControlled: true,
       builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 16, bottom: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Kies een scenario om opnieuw te beantwoorden:',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.45,
-                  child: ListView.separated(
-                    itemCount: widget.allScenarios.length,
-                    separatorBuilder: (context, i) => const Divider(height: 1),
-                    itemBuilder: (context, i) {
-                      final scenario = widget.allScenarios[i];
-                      return ListTile(
-                        title: Text(scenario.title),
-                        onTap: () {
-                          Navigator.of(context).pop();
-                          setState(() {
-                            if (_jokersLeft > 0) _jokersLeft--;
-                          });
-                          // Roep de parent callback aan zodat StoryScreen het scenario kan wisselen
-                          if (widget.onChoiceSelected != null) {
-                            final choice = widget.choices.firstWhere(
-                              (c) => c.nextCardId == scenario.id,
-                              orElse: () => ChoiceData(text: scenario.title, nextCardId: scenario.id),
-                            );
-                            widget.onChoiceSelected!(choice);
-                          }
-                          // Controleer of het gekozen scenario een eindscenario is (alle antwoorden hebben lege nextScenarioId)
-                          final isEndScenario = scenario.answers.isNotEmpty && scenario.answers.every((a) => a.nextScenarioId == null);
-                          if (isEndScenario && widget.onLostLifesChanged != null) {
-                            widget.onLostLifesChanged!(widget.lostLifes + 1);
-                          }
-                        },
-                      );
-                    },
+        String? selectedScenarioId;
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final mediaQuery = MediaQuery.of(context);
+            final double screenHeight = mediaQuery.size.height;
+            final double sheetHeight = screenHeight * 0.72;
+
+            return SafeArea(
+              child: SizedBox(
+                height: screenHeight,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Container(
+                      height: sheetHeight,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 18, 14, 8),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8),
+                              child: Text(
+                                'Kies een scenario om\nopnieuw te beantwoorden:',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  height: 1.05,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFFE4007D),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 18),
+                            Expanded(
+                              child: ListView.separated(
+                                shrinkWrap: true,
+                                itemCount: widget.allScenarios.length,
+                                separatorBuilder: (context, i) =>
+                                    const Divider(height: 1),
+                                itemBuilder: (context, i) {
+                                  final scenario = widget.allScenarios[i];
+                                  final scenarioTitle =
+                                      scenario.title.trim().isEmpty
+                                          ? scenario.text.trim()
+                                          : scenario.title.trim();
+                                  final isSelected =
+                                      selectedScenarioId == scenario.id;
+
+                                  return Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(8),
+                                      onTap: () async {
+                                        setModalState(() {
+                                          selectedScenarioId = scenario.id;
+                                        });
+
+                                        await Future.delayed(
+                                            const Duration(milliseconds: 180));
+                                        if (!mounted) return;
+
+                                        Navigator.of(context).pop();
+                                        setState(() {
+                                          if (_jokersLeft > 0) _jokersLeft--;
+                                        });
+                                        // Roep de parent callback aan zodat StoryScreen het scenario kan wisselen
+                                        if (widget.onChoiceSelected != null) {
+                                          final choice =
+                                              widget.choices.firstWhere(
+                                            (c) => c.nextCardId == scenario.id,
+                                            orElse: () => ChoiceData(
+                                                text: scenarioTitle,
+                                                nextCardId: scenario.id),
+                                          );
+                                          widget.onChoiceSelected!(choice);
+                                        }
+                                        // Controleer of het gekozen scenario een eindscenario is (alle antwoorden hebben lege nextScenarioId)
+                                        final isEndScenario =
+                                            scenario.answers.isNotEmpty &&
+                                                scenario.answers.every((a) =>
+                                                    a.nextScenarioId == null);
+                                        if (isEndScenario &&
+                                            widget.onLostLifesChanged != null) {
+                                          widget.onLostLifesChanged!(
+                                              widget.lostLifes + 1);
+                                        }
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 14),
+                                        child: Text(
+                                          scenarioTitle,
+                                          style: TextStyle(
+                                            fontSize: 17,
+                                            color: Colors.black,
+                                            fontWeight: isSelected
+                                                ? FontWeight.w900
+                                                : FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
@@ -146,7 +272,6 @@ class _ChoiceCardState extends State<ChoiceCard> {
       });
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -174,8 +299,11 @@ class _ChoiceCardState extends State<ChoiceCard> {
     final double bottomPadding = 32;
     final double reservedSpace = 8 + 36 + 8 + 20 + 12 + 20; // title, image, etc
     final int numChoices = widget.choices.length;
-    final double estimatedNeeded = reservedSpace + numChoices * (buttonHeight + buttonMargin) + bottomPadding;
-    final double screenHeight = MediaQuery.of(context).size.height * 0.48; // ongeveer flex:3 van het scherm
+    final double estimatedNeeded = reservedSpace +
+        numChoices * (buttonHeight + buttonMargin) +
+        bottomPadding;
+    final double screenHeight = MediaQuery.of(context).size.height *
+        0.48; // ongeveer flex:3 van het scherm
 
     bool showBottomPadding = estimatedNeeded < screenHeight;
 
@@ -199,36 +327,27 @@ class _ChoiceCardState extends State<ChoiceCard> {
                 'Wat doe je?',
                 style: TextStyle(
                   color: Colors.black87,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                  fontWeight: FontWeight.normal,
                 ),
               ),
               const Spacer(),
               // Jokers zijn niet zichtbaar voor host of speler
               // (de functionaliteit blijft behouden, alleen de weergave is verwijderd)
               const SizedBox(width: 8),
-              Image.asset(
-                widget.lostLifes >= 1
-                    ? 'assets/images/noLifes.png'
-                    : 'assets/images/lifes.png',
-                width: 36,
-                height: 36,
+              _LifeHeart(
+                heartKey: _heartKeys[0],
+                isLost: widget.lostLifes >= 1,
               ),
               const SizedBox(width: 8),
-              Image.asset(
-                widget.lostLifes >= 2
-                    ? 'assets/images/noLifes.png'
-                    : 'assets/images/lifes.png',
-                width: 36,
-                height: 36,
+              _LifeHeart(
+                heartKey: _heartKeys[1],
+                isLost: widget.lostLifes >= 2,
               ),
               const SizedBox(width: 8),
-              Image.asset(
-                widget.lostLifes >= 3
-                    ? 'assets/images/noLifes.png'
-                    : 'assets/images/lifes.png',
-                width: 36,
-                height: 36,
+              _LifeHeart(
+                heartKey: _heartKeys[2],
+                isLost: widget.lostLifes >= 3,
               ),
               const SizedBox(width: 8),
             ],
@@ -236,16 +355,177 @@ class _ChoiceCardState extends State<ChoiceCard> {
           const SizedBox(height: 4),
           // Geen scroll, alle antwoorden zichtbaar maken
           ...widget.choices.asMap().entries.map(
-            (entry) => _ChoiceButton(
-              choice: entry.value,
-              selected: _selectedIndex == entry.key,
-              isLocked: widget.isLocked,
-              onTap: () => _handleChoiceTap(entry.key),
-              bottomPadding: showBottomPadding ? 40 : 16,
-            ),
-          ),
-          if (showBottomPadding) const SizedBox(height: 32), // extra padding onderaan alleen als er ruimte is
+                (entry) => _ChoiceButton(
+                  choice: entry.value,
+                  selected: _selectedIndex == entry.key,
+                  isLocked: widget.isLocked,
+                  onTap: () => _handleChoiceTap(entry.key),
+                  bottomPadding: showBottomPadding ? 40 : 16,
+                ),
+              ),
+          if (showBottomPadding)
+            const SizedBox(
+                height: 32), // extra padding onderaan alleen als er ruimte is
         ],
+      ),
+    );
+  }
+}
+
+// HeartBreakOverlay — renders the full grow + break + empty animation
+class HeartBreakOverlay extends StatefulWidget {
+  final Offset position; // screen-space center of the heart icon
+  final VoidCallback onDone;
+
+  const HeartBreakOverlay({
+    Key? key,
+    required this.position,
+    required this.onDone,
+  }) : super(key: key);
+
+  @override
+  State<HeartBreakOverlay> createState() => _HeartBreakOverlayState();
+}
+
+class _HeartBreakOverlayState extends State<HeartBreakOverlay>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  int _animationRun = 0;
+
+  static const _filledHeart = 'assets/images/lifes.png';
+  static const _emptyHeart = 'assets/images/noLifes.png';
+  static const _heartBreak = 'assets/images/hearbreake.gif';
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 4300),
+    );
+    _animationRun++;
+    _controller.forward().whenComplete(widget.onDone);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  double _intervalValue(double start, double end, Curve curve) {
+    final value = ((_controller.value - start) / (end - start)).clamp(0.0, 1.0);
+    return curve.transform(value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Position the animation centered on the original heart icon's screen location
+    return Positioned(
+      left: widget.position.dx - 18, // 18 = half of 36px icon width
+      top: widget.position.dy - 18,
+      child: IgnorePointer(
+        child: SizedBox(
+          width: 36,
+          height: 36,
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              final firstGrow = _intervalValue(0, 0.16, Curves.easeOutBack);
+              final firstSettle = _intervalValue(0.16, 0.25, Curves.easeInOut);
+              final secondGrow = _intervalValue(0.25, 0.38, Curves.easeOutBack);
+              final fullOut = _intervalValue(0.42, 0.48, Curves.easeIn);
+              final breakIn = _intervalValue(0.46, 0.52, Curves.easeOut);
+              final breakOut = _intervalValue(0.92, 0.96, Curves.easeIn);
+              final emptyIn = _intervalValue(0.94, 1, Curves.easeOutBack);
+
+              final firstPulseScale = 1 + (3.2 * firstGrow);
+              final settledScale = firstPulseScale - (0.75 * firstSettle);
+              final fullScale = settledScale + (1.05 * secondGrow);
+              final fullOpacity = (1 - fullOut).clamp(0.0, 1.0);
+              final heartBreakOpacity =
+                  (breakIn * (1 - breakOut)).clamp(0.0, 1.0);
+              final emptyOpacity = emptyIn.clamp(0.0, 1.0);
+
+              return Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  if (fullOpacity > 0)
+                    Opacity(
+                      opacity: fullOpacity,
+                      child: Transform.scale(
+                        alignment: Alignment.center,
+                        scale: fullScale,
+                        child: Image.asset(
+                          _filledHeart,
+                          width: 36,
+                          height: 36,
+                        ),
+                      ),
+                    ),
+                  if (heartBreakOpacity > 0)
+                    Opacity(
+                      opacity: heartBreakOpacity,
+                      child: Transform.scale(
+                        alignment: Alignment.center,
+                        scale: 4.7,
+                        child: Image.asset(
+                          _heartBreak,
+                          key: ValueKey('heart-break-$_animationRun'),
+                          width: 36,
+                          height: 36,
+                        ),
+                      ),
+                    ),
+                  if (emptyOpacity > 0)
+                    Opacity(
+                      opacity: emptyOpacity,
+                      child: Transform.scale(
+                        alignment: Alignment.center,
+                        scale: 1,
+                        child: Image.asset(
+                          _emptyHeart,
+                          width: 36,
+                          height: 36,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// _LifeHeart — now only renders the static heart icon (filled or empty).
+// The growing/breaking animation is handled by HeartBreakOverlay instead,
+// so it can render above all other widgets via the Overlay layer.
+class _LifeHeart extends StatelessWidget {
+  final bool isLost;
+  final GlobalKey heartKey;
+
+  static const _filledHeart = 'assets/images/lifes.png';
+  static const _emptyHeart = 'assets/images/noLifes.png';
+
+  const _LifeHeart({
+    required this.isLost,
+    required this.heartKey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      key: heartKey,
+      width: 36,
+      height: 36,
+      child: Image.asset(
+        isLost ? _emptyHeart : _filledHeart,
+        width: 36,
+        height: 36,
       ),
     );
   }
@@ -301,165 +581,174 @@ class _JokerJumpscareDialogState extends State<_JokerJumpscareDialog>
         child: Stack(
           children: [
             Positioned.fill(
-            child: AnimatedBuilder(
-              animation: _controller,
-              builder: (context, child) {
-                final t = Curves.easeOut.transform(_controller.value);
-                final pulse = (math.sin(_controller.value * math.pi * 10) + 1) / 2;
-                return Container(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      colors: [
-                        Colors.red.withOpacity(0.16 + (0.2 * pulse)),
-                        Colors.black.withOpacity(0.78 + (0.06 * t)),
-                      ],
-                      stops: const [0.0, 1.0],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          Center(
-            child: AnimatedBuilder(
-              animation: _controller,
-              builder: (context, child) {
-                final t = Curves.elasticOut.transform(_controller.value.clamp(0.0, 1.0));
-                final shakeX = math.sin(_controller.value * 32) * (1.0 - t) * 14;
-                final shakeY = math.cos(_controller.value * 25) * (1.0 - t) * 8;
-                return Transform.translate(
-                  offset: Offset(shakeX, shakeY),
-                  child: Transform.scale(
-                    scale: lerpDouble(0.55, 1.0, t) ?? 1.0,
-                    child: child,
-                  ),
-                );
-              },
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 360),
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF180E1F),
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(color: const Color(0xFFFF4040), width: 3),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.red.withOpacity(0.55),
-                        blurRadius: 28,
-                        spreadRadius: 2,
-                      ),
-                      BoxShadow(
-                        color: Colors.redAccent.withOpacity(0.35),
-                        blurRadius: 80,
-                        spreadRadius: 12,
-                      ),
-                    ],
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Stack(
-                        children: [
-                          Image.asset(
-                            'assets/images/joker.png',
-                            height: 250,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
-                          Positioned.fill(
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                gradient: RadialGradient(
-                                  colors: [
-                                    Colors.transparent,
-                                    Colors.red.withOpacity(0.28),
-                                    Colors.red.withOpacity(0.68),
-                                  ],
-                                  stops: const [0.45, 0.78, 1.0],
-                                ),
-                              ),
-                            ),
-                          ),
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  final t = Curves.easeOut.transform(_controller.value);
+                  final pulse =
+                      (math.sin(_controller.value * math.pi * 10) + 1) / 2;
+                  return Container(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        colors: [
+                          Colors.red.withOpacity(0.16 + (0.2 * pulse)),
+                          Colors.black.withOpacity(0.78 + (0.06 * t)),
                         ],
+                        stops: const [0.0, 1.0],
                       ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
+                    ),
+                  );
+                },
+              ),
+            ),
+            Center(
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  final t = Curves.elasticOut
+                      .transform(_controller.value.clamp(0.0, 1.0));
+                  final shakeX = math.sin(_controller.value * 32) * (1.0 - t) * 14;
+                  final shakeY = math.cos(_controller.value * 25) * (1.0 - t) * 8;
+                  return Transform.translate(
+                    offset: Offset(shakeX, shakeY),
+                    child: Transform.scale(
+                      scale: lerpDouble(0.55, 1.0, t) ?? 1.0,
+                      child: child,
+                    ),
+                  );
+                },
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 360),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF180E1F),
+                      borderRadius: BorderRadius.circular(28),
+                      border: Border.all(color: const Color(0xFFFF4040), width: 3),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.red.withOpacity(0.55),
+                          blurRadius: 28,
+                          spreadRadius: 2,
+                        ),
+                        BoxShadow(
+                          color: Colors.redAccent.withOpacity(0.35),
+                          blurRadius: 80,
+                          spreadRadius: 12,
+                        ),
+                      ],
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Stack(
                           children: [
-                            const Text(
-                              'Joker verschijnt!',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.w900,
-                              ),
+                            Image.asset(
+                              'assets/images/joker.png',
+                              height: 250,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
                             ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Kies een scenario om opnieuw te beantwoorden.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 15,
-                                height: 1.35,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            AnimatedOpacity(
-                              duration: const Duration(milliseconds: 180),
-                              opacity: _showActions ? 1 : 0,
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFFFF4040),
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
+                            Positioned.fill(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: RadialGradient(
+                                    colors: [
+                                      Colors.transparent,
+                                      Colors.red.withOpacity(0.28),
+                                      Colors.red.withOpacity(0.68),
+                                    ],
+                                    stops: const [0.45, 0.78, 1.0],
                                   ),
-                                  onPressed: _continueToScenarioSelect,
-                                  child: const Text(
-                                    'Ja, joker inzetten',
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            AnimatedBuilder(
-                              animation: _controller,
-                              builder: (context, child) {
-                                final pulse = (math.sin(_controller.value * math.pi * 12) + 1) / 2;
-                                return Opacity(
-                                  opacity: 0.45 + (0.55 * pulse),
-                                  child: child,
-                                );
-                              },
-                              child: const Text(
-                                '!!!',
-                                style: TextStyle(
-                                  color: Color(0xFFFF3B3B),
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 6,
                                 ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                'Joker verschijnt!',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Kies een scenario om opnieuw te beantwoorden.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 15,
+                                  height: 1.35,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              AnimatedOpacity(
+                                duration: const Duration(milliseconds: 180),
+                                opacity: _showActions ? 1 : 0,
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFFFF4040),
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 14),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                    ),
+                                    onPressed: _continueToScenarioSelect,
+                                    child: const Text(
+                                      'Ja, joker inzetten',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              AnimatedBuilder(
+                                animation: _controller,
+                                builder: (context, child) {
+                                  final pulse = (math.sin(
+                                              _controller.value * math.pi * 12) +
+                                          1) /
+                                      2;
+                                  return Opacity(
+                                    opacity: 0.45 + (0.55 * pulse),
+                                    child: child,
+                                  );
+                                },
+                                child: const Text(
+                                  '!!!',
+                                  style: TextStyle(
+                                    color: Color(0xFFFF3B3B),
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 6,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
           ],
         ),
       ),
@@ -489,7 +778,8 @@ class _ChoiceButton extends StatelessWidget {
       child: Container(
         width: double.infinity,
         margin: const EdgeInsets.only(bottom: 10),
-        padding: EdgeInsets.fromLTRB(18, 16, 18, 16), // minder padding rondom tekst
+        padding:
+            EdgeInsets.fromLTRB(18, 16, 18, 16), // minder padding rondom tekst
         decoration: BoxDecoration(
           color: selected ? const Color(0xFF273583) : const Color(0xFF5F699F),
           borderRadius: BorderRadius.circular(10),

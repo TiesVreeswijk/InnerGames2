@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import '../models/lobby/lobby_player.dart';
 
 class LobbyContent extends StatelessWidget {
   final bool isHost;
   final String gameTitle;
-  final List<String> players;
-  final String? hostName;       // ✅ FIX: added hostName
-  final int? selectedAvatar;    // ✅ FIX: added selectedAvatar
+  final List<LobbyPlayer> players;
+  final String? hostName;
+  final int? selectedAvatar;
 
   const LobbyContent({
     Key? key,
@@ -16,7 +17,6 @@ class LobbyContent extends StatelessWidget {
     this.selectedAvatar,
   }) : super(key: key);
 
-  // ✅ FIX: matches AvatarData.getDefaultAvatars() in avatar_select.dart
   static const List<String> _defaultAvatars = [
     'assets/images/3d_avatar_1.png',
     'assets/images/3d_avatar_2.png',
@@ -42,7 +42,7 @@ class LobbyContent extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
@@ -67,7 +67,7 @@ class LobbyContent extends StatelessWidget {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -127,14 +127,14 @@ class LobbyContent extends StatelessWidget {
           Icon(
             Icons.people_outline,
             size: 80,
-            color: Colors.grey.withOpacity(0.5),
+            color: Colors.grey.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
             isHost ? 'Wait for players to join...' : 'Connecting...',
             style: TextStyle(
               fontSize: 20,
-              color: Colors.grey.withOpacity(0.7),
+              color: Colors.grey.withValues(alpha: 0.7),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -164,16 +164,14 @@ class LobbyContent extends StatelessWidget {
       ),
       itemCount: players.length,
       itemBuilder: (context, index) {
-        final playerName = players[index];
+        final player = players[index]; // getting the player model directly from the list, so we have access to all instead of just displayName
 
-        // ✅ FIX: identify host by name, not by index 0
-        final isHostPlayer = playerName == hostName;
+        final isHostPlayer = player.isHost; // this is the real source of truth for who's host, not a name comparison
 
-        // ✅ FIX: use real selected avatar for host; fallback for others
-        final avatarAssetPath = _avatarAssetForPlayer(index, isHostPlayer);
+        final avatarAssetPath = _avatarAssetForPlayer(player); // player.selectedAvatar is the single source of truth for which avatar to show and stored in firebaseq, no index fallback needed
 
         final playerBoxColor =
-        isHostPlayer ? const Color(0xFFF18F02) : const Color(0xFFE4007D);
+            isHostPlayer ? const Color(0xFFF18F02) : const Color(0xFFE4007D);
 
         return Stack(
           clipBehavior: Clip.none,
@@ -188,7 +186,7 @@ class LobbyContent extends StatelessWidget {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -196,7 +194,7 @@ class LobbyContent extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    playerName,
+                    player.displayName, // ✅ was: playerName
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -243,15 +241,13 @@ class LobbyContent extends StatelessWidget {
     );
   }
 
-  String _avatarAssetForPlayer(int index, bool isHostPlayer) {
-    // ✅ FIX: host gets their chosen avatar; others cycle through defaults
-    if (isHostPlayer && selectedAvatar != null) {
-      if (selectedAvatar! >= 0 && selectedAvatar! < _defaultAvatars.length) {
-        return _defaultAvatars[selectedAvatar!];
-      }
-    }
 
-    // Fallback: cycle through the list for non-host players
-    return _defaultAvatars[index % _defaultAvatars.length];
+  // getting right avatar icon based on player's selectedAvatar index (firebase), with safe fallbacks to avoid crashes from bad data
+  String _avatarAssetForPlayer(LobbyPlayer player) {
+    final avatar = player.selectedAvatar;
+    if (avatar != null && avatar >= 0 && avatar < _defaultAvatars.length) {
+      return _defaultAvatars[avatar];
+    }
+    return _defaultAvatars[0]; // safe fallback if avatar was never set
   }
 }

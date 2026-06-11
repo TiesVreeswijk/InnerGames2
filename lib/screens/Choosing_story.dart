@@ -353,6 +353,7 @@ class ChoosingStoryScreen extends StatelessWidget {
 
       final result = await lobbyService.createLobby2(
         playerName: playerName,
+        selectedAvatar: selectedAvatar ?? 0,
       );
 
       if (!context.mounted) return;

@@ -91,6 +91,10 @@ export const createLobby2 = onCall(
 
     const displayName = normalizeDisplayName(request.data?.displayName);
     const gameTitle = normalizeGameTitle(request.data?.gameTitle);
+    const selectedAvatar =
+      typeof request.data?.selectedAvatar === "number" ?
+        request.data.selectedAvatar :
+        null;
     const joinCode = await generateUniqueJoinCode();
 
     const lobbyRef = db.collection("lobbies").doc();
@@ -114,6 +118,7 @@ export const createLobby2 = onCall(
       tx.set(playerRef, {
         uid,
         displayName,
+        selectedAvatar,
         isHost: true,
         isReady: false,
         connected: true,

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../models/scenario_data.dart';
 import '../models/story_card_data.dart';
+import '../screens/move_pawn_screen.dart';
 import '../services/scenario_service.dart';
 import '../widgets/choice_card.dart';
 import '../widgets/intervention_card.dart';
@@ -38,6 +39,7 @@ class _StoryScreenState extends State<StoryScreen> {
   List<ScenarioData> _allScenarios = [];
   int _lostLifes = 0;
   bool _gameOverDialogShown = false;
+  Timer? _scenarioAutoAdvanceTimer;
 
   @override
   void initState() {
@@ -96,8 +98,17 @@ class _StoryScreenState extends State<StoryScreen> {
 
   @override
   void dispose() {
+    _scenarioAutoAdvanceTimer?.cancel();
     _lobbyStatusSubscription?.cancel();
     super.dispose();
+  }
+
+  /// Show the Move Pawn interstitial and wait for the player to tap Continue.
+  Future<void> _showMovePawn() async {
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const MovePawnScreen()),
+    );
   }
 
   Future<void> _loadAllScenarios() async {
@@ -125,7 +136,47 @@ class _StoryScreenState extends State<StoryScreen> {
       _lastChoiceId = null;
     });
 
+    _scheduleAutoAdvanceForScenario(scenario);
+
     print('Nieuw scenario geladen: $_currentScenarioId');
+  }
+
+  void _scheduleAutoAdvanceForScenario(ScenarioData scenario) {
+    _scenarioAutoAdvanceTimer?.cancel();
+
+    if (scenario.id != 'scenario_6') {
+      return;
+    }
+
+    String? nextScenarioId;
+    for (final answer in scenario.answers) {
+      final candidate = answer.nextScenarioId;
+      if (candidate != null && candidate.isNotEmpty) {
+        nextScenarioId = candidate;
+        break;
+      }
+    }
+
+    if (nextScenarioId == null) {
+      return;
+    }
+
+    _scenarioAutoAdvanceTimer = Timer(const Duration(seconds: 3), () async {
+      if (!mounted || _currentScenarioId != scenario.id) return;
+
+      final args = ModalRoute.of(context)?.settings.arguments
+          as Map<String, dynamic>?;
+      final isHost = args?['isHost'] == true;
+      final lobbyId = args?['lobbyId'] as String?;
+
+      if (lobbyId != null) {
+        if (!isHost) return;
+        await _scenarioService.moveToNextScenario(lobbyId, nextScenarioId!);
+        return;
+      }
+
+      await _loadScenario(nextScenarioId!);
+    });
   }
 
   void _showGameOverDialogIfNeeded(BuildContext context) {
@@ -558,6 +609,9 @@ class _StoryScreenState extends State<StoryScreen> {
                                 await Future.delayed(
                                   const Duration(milliseconds: 450),
                                 );
+
+                                // Show pawn screen before advancing to next story.
+                                await _showMovePawn();
 
                                 if (isHost &&
                                     nextCardId != null &&

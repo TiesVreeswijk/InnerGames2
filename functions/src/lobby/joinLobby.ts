@@ -41,6 +41,11 @@ export const joinLobby = onCall({region: "europe-west1"}, async (request) => {
 
   const displayName = normalizeDisplayName(displayNameRaw);
 
+  const selectedAvatar =
+    typeof request.data?.selectedAvatar === "number" ?
+      request.data.selectedAvatar :
+      null;
+
   const query = await db
     .collection("lobbies")
     .where("joinCode", "==", joinCode)
@@ -77,6 +82,7 @@ export const joinLobby = onCall({region: "europe-west1"}, async (request) => {
     tx.set(playerRef, {
       uid,
       displayName,
+      selectedAvatar,
       isHost: false,
       isReady: false,
       connected: true,
