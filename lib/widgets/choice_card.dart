@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import '../models/story_card_data.dart';
 import '../models/scenario_data.dart';
@@ -31,7 +34,7 @@ class ChoiceCard extends StatefulWidget {
 }
 
 class _ChoiceCardState extends State<ChoiceCard> {
-  // Controleer op eindantwoord zonder nextScenarioId en toon joker dialog na 5 seconden als er nog levens zijn
+  // Controleer op eindantwoord zonder nextCardId en toon joker dialog na 1 seconde als er nog levens zijn
   void _checkEndScenarioAndShowJoker() async {
     // Vind of er een gekozen antwoord is zonder nextScenarioId
     final selected = _confirmedIndex;
@@ -40,10 +43,10 @@ class _ChoiceCardState extends State<ChoiceCard> {
     // Alleen host mag de joker dialog zien
     if (!widget.isHost) return;
     // Controleer of het een eindantwoord is
-    if (choice.nextCardId.isEmpty && widget.lostLifes < 3) {
-      // Wacht 5 seconden
+    if (choice.nextCardId.isEmpty && widget.lostLifes < 3 && _jokersLeft > 0) {
+      // Wacht 1 seconde
       await Future.delayed(const Duration(seconds: 1));
-      if (mounted && widget.lostLifes < 3) {
+      if (mounted && widget.lostLifes < 3 && _jokersLeft > 0) {
         _showJokerDialog();
       }
     }
@@ -107,24 +110,10 @@ class _ChoiceCardState extends State<ChoiceCard> {
 
   void _showJokerDialog() {
     showDialog(
+      barrierDismissible: false,
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Joker inzetten'),
-        content: const Text(
-            'Wil je deze joker inzetten om een scenario opnieuw te beantwoorden?'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext, rootNavigator: true).pop();
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) {
-                  _showScenarioSelectSheet();
-                }
-              });
-            },
-            child: const Text('Ja, joker inzetten'),
-          ),
-        ],
+      builder: (context) => _JokerJumpscareDialog(
+        onContinue: _showScenarioSelectSheet,
       ),
     );
   }
@@ -537,6 +526,231 @@ class _LifeHeart extends StatelessWidget {
         isLost ? _emptyHeart : _filledHeart,
         width: 36,
         height: 36,
+      ),
+    );
+  }
+}
+
+class _JokerJumpscareDialog extends StatefulWidget {
+  final VoidCallback onContinue;
+
+  const _JokerJumpscareDialog({required this.onContinue});
+
+  @override
+  State<_JokerJumpscareDialog> createState() => _JokerJumpscareDialogState();
+}
+
+class _JokerJumpscareDialogState extends State<_JokerJumpscareDialog>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  bool _showActions = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+
+    Future.delayed(const Duration(milliseconds: 420), () {
+      if (mounted) {
+        setState(() {
+          _showActions = true;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _continueToScenarioSelect() {
+    Navigator.of(context).pop();
+    widget.onContinue();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.expand(
+      child: Material(
+        color: Colors.transparent,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  final t = Curves.easeOut.transform(_controller.value);
+                  final pulse =
+                      (math.sin(_controller.value * math.pi * 10) + 1) / 2;
+                  return Container(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        colors: [
+                          Colors.red.withOpacity(0.16 + (0.2 * pulse)),
+                          Colors.black.withOpacity(0.78 + (0.06 * t)),
+                        ],
+                        stops: const [0.0, 1.0],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Center(
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  final t = Curves.elasticOut
+                      .transform(_controller.value.clamp(0.0, 1.0));
+                  final shakeX = math.sin(_controller.value * 32) * (1.0 - t) * 14;
+                  final shakeY = math.cos(_controller.value * 25) * (1.0 - t) * 8;
+                  return Transform.translate(
+                    offset: Offset(shakeX, shakeY),
+                    child: Transform.scale(
+                      scale: lerpDouble(0.55, 1.0, t) ?? 1.0,
+                      child: child,
+                    ),
+                  );
+                },
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 360),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF180E1F),
+                      borderRadius: BorderRadius.circular(28),
+                      border: Border.all(color: const Color(0xFFFF4040), width: 3),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.red.withOpacity(0.55),
+                          blurRadius: 28,
+                          spreadRadius: 2,
+                        ),
+                        BoxShadow(
+                          color: Colors.redAccent.withOpacity(0.35),
+                          blurRadius: 80,
+                          spreadRadius: 12,
+                        ),
+                      ],
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Stack(
+                          children: [
+                            Image.asset(
+                              'assets/images/joker.png',
+                              height: 250,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                            Positioned.fill(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: RadialGradient(
+                                    colors: [
+                                      Colors.transparent,
+                                      Colors.red.withOpacity(0.28),
+                                      Colors.red.withOpacity(0.68),
+                                    ],
+                                    stops: const [0.45, 0.78, 1.0],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                'Joker verschijnt!',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Kies een scenario om opnieuw te beantwoorden.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 15,
+                                  height: 1.35,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              AnimatedOpacity(
+                                duration: const Duration(milliseconds: 180),
+                                opacity: _showActions ? 1 : 0,
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFFFF4040),
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 14),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                    ),
+                                    onPressed: _continueToScenarioSelect,
+                                    child: const Text(
+                                      'Ja, joker inzetten',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              AnimatedBuilder(
+                                animation: _controller,
+                                builder: (context, child) {
+                                  final pulse = (math.sin(
+                                              _controller.value * math.pi * 12) +
+                                          1) /
+                                      2;
+                                  return Opacity(
+                                    opacity: 0.45 + (0.55 * pulse),
+                                    child: child,
+                                  );
+                                },
+                                child: const Text(
+                                  '!!!',
+                                  style: TextStyle(
+                                    color: Color(0xFFFF3B3B),
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 6,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
