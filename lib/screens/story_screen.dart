@@ -39,6 +39,7 @@ class _StoryScreenState extends State<StoryScreen> {
   List<ScenarioData> _allScenarios = [];
   int _lostLifes = 0;
   bool _gameOverDialogShown = false;
+  Timer? _scenarioAutoAdvanceTimer;
 
   @override
   void initState() {
@@ -97,6 +98,7 @@ class _StoryScreenState extends State<StoryScreen> {
 
   @override
   void dispose() {
+    _scenarioAutoAdvanceTimer?.cancel();
     _lobbyStatusSubscription?.cancel();
     super.dispose();
   }
@@ -134,7 +136,47 @@ class _StoryScreenState extends State<StoryScreen> {
       _lastChoiceId = null;
     });
 
+    _scheduleAutoAdvanceForScenario(scenario);
+
     print('Nieuw scenario geladen: $_currentScenarioId');
+  }
+
+  void _scheduleAutoAdvanceForScenario(ScenarioData scenario) {
+    _scenarioAutoAdvanceTimer?.cancel();
+
+    if (scenario.id != 'scenario_6') {
+      return;
+    }
+
+    String? nextScenarioId;
+    for (final answer in scenario.answers) {
+      final candidate = answer.nextScenarioId;
+      if (candidate != null && candidate.isNotEmpty) {
+        nextScenarioId = candidate;
+        break;
+      }
+    }
+
+    if (nextScenarioId == null) {
+      return;
+    }
+
+    _scenarioAutoAdvanceTimer = Timer(const Duration(seconds: 3), () async {
+      if (!mounted || _currentScenarioId != scenario.id) return;
+
+      final args = ModalRoute.of(context)?.settings.arguments
+          as Map<String, dynamic>?;
+      final isHost = args?['isHost'] == true;
+      final lobbyId = args?['lobbyId'] as String?;
+
+      if (lobbyId != null) {
+        if (!isHost) return;
+        await _scenarioService.moveToNextScenario(lobbyId, nextScenarioId!);
+        return;
+      }
+
+      await _loadScenario(nextScenarioId!);
+    });
   }
 
   void _showGameOverDialogIfNeeded(BuildContext context) {
