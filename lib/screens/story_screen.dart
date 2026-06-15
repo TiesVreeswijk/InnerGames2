@@ -1,11 +1,14 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../models/lobby/lobby_player.dart';
 import '../models/scenario_data.dart';
 import '../models/story_card_data.dart';
 import '../screens/move_pawn_screen.dart';
+import '../services/lobby_service.dart';
 import '../services/scenario_service.dart';
 import '../widgets/choice_card.dart';
 import '../widgets/intervention_card.dart';
@@ -20,12 +23,24 @@ class StoryScreen extends StatefulWidget {
 
 class _StoryScreenState extends State<StoryScreen> {
   final ScenarioService _scenarioService = ScenarioService();
+  final LobbyService _lobbyService = LobbyService();
 
   bool _choicesLocked = false;
   ScenarioData? _scenario;
   String _currentScenarioId = 'scenario_1';
   late Future<void> _gameFuture;
   StreamSubscription? _lobbyStatusSubscription;
+  StreamSubscription? _playersSubscription;
+
+  // ── Voting state ──────────────────────────────────────────────────────────
+  /// All players currently in the lobby (used to resolve avatars for votes).
+  List<LobbyPlayer> _players = [];
+
+  /// uid -> chosen option index for the active scenario.
+  Map<String, int> _votes = {};
+
+  /// The signed-in user's uid, used to highlight their own vote/avatar.
+  String? _currentUid;
 
   int _choiceClickCount = 0;
   String? _lastChoiceId;
@@ -45,6 +60,8 @@ class _StoryScreenState extends State<StoryScreen> {
   void initState() {
     super.initState();
 
+    _currentUid = FirebaseAuth.instance.currentUser?.uid;
+
     _gameFuture = _loadScenario(_currentScenarioId);
     _loadAllScenarios();
 
@@ -55,6 +72,15 @@ class _StoryScreenState extends State<StoryScreen> {
       final lobbyId = args?['lobbyId'];
 
       if (lobbyId != null) {
+        // Keep the live roster so we can map votes -> avatars.
+        _playersSubscription =
+            _lobbyService.listenToPlayers(lobbyId).listen((players) {
+              if (!mounted) return;
+              setState(() {
+                _players = players;
+              });
+            });
+
         _lobbyStatusSubscription = FirebaseFirestore.instance
             .collection('lobbies')
             .doc(lobbyId)
@@ -86,6 +112,24 @@ class _StoryScreenState extends State<StoryScreen> {
             return;
           }
 
+          // ✅ Live vote tally
+          final votesRaw = data['votes'] as Map<String, dynamic>?;
+          final parsedVotes = <String, int>{};
+          if (votesRaw != null) {
+            votesRaw.forEach((uid, value) {
+              if (value is int) {
+                parsedVotes[uid] = value;
+              } else if (value is num) {
+                parsedVotes[uid] = value.toInt();
+              }
+            });
+          }
+          if (mounted) {
+            setState(() {
+              _votes = parsedVotes;
+            });
+          }
+
           // ✅ Scenario sync
           if (data['currentScenarioId'] != null &&
               data['currentScenarioId'] != _currentScenarioId) {
@@ -100,6 +144,7 @@ class _StoryScreenState extends State<StoryScreen> {
   void dispose() {
     _scenarioAutoAdvanceTimer?.cancel();
     _lobbyStatusSubscription?.cancel();
+    _playersSubscription?.cancel();
     super.dispose();
   }
 
@@ -165,7 +210,7 @@ class _StoryScreenState extends State<StoryScreen> {
       if (!mounted || _currentScenarioId != scenario.id) return;
 
       final args = ModalRoute.of(context)?.settings.arguments
-          as Map<String, dynamic>?;
+      as Map<String, dynamic>?;
       final isHost = args?['isHost'] == true;
       final lobbyId = args?['lobbyId'] as String?;
 
@@ -205,6 +250,25 @@ class _StoryScreenState extends State<StoryScreen> {
 
     final isHost = args?['isHost'] == true;
     final lobbyId = args?['lobbyId'] as String?;
+    final bool votingEnabled = lobbyId != null;
+
+    // Build option index -> voters, resolving each uid to a LobbyPlayer so the
+    // ChoiceCard can render the right avatar. Unknown uids get a placeholder.
+    final Map<int, List<LobbyPlayer>> votersByOption = {};
+    _votes.forEach((uid, optionIndex) {
+      final player = _players.firstWhere(
+            (p) => p.uid == uid,
+        orElse: () => LobbyPlayer(
+          uid: uid,
+          displayName: '',
+          isHost: false,
+          isReady: false,
+          connected: true,
+          selectedAvatar: null,
+        ),
+      );
+      (votersByOption[optionIndex] ??= <LobbyPlayer>[]).add(player);
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _showGameOverDialogIfNeeded(context);
@@ -288,6 +352,9 @@ class _StoryScreenState extends State<StoryScreen> {
                         showTimer: false,
                         onTimerFinished: () {
                           if (!mounted || isHost) return;
+                          // In multiplayer the host decides when to advance, so
+                          // players keep voting/discussing past the timer.
+                          if (votingEnabled) return;
                           setState(() {
                             _choicesLocked = true;
                           });
@@ -359,6 +426,9 @@ class _StoryScreenState extends State<StoryScreen> {
                                   showTimer: true,
                                   onTimerFinished: () {
                                     if (!mounted || isHost) return;
+                                    // Host controls advancing in multiplayer;
+                                    // keep options open for discussion.
+                                    if (votingEnabled) return;
                                     setState(() {
                                       _choicesLocked = true;
                                     });
@@ -395,6 +465,16 @@ class _StoryScreenState extends State<StoryScreen> {
                                         _maxInterventionCards,
                                         allScenarios: _allScenarios,
                                         lostLifes: _lostLifes,
+                                        scenarioId: _currentScenarioId,
+                                        votingEnabled: votingEnabled,
+                                        currentUid: _currentUid,
+                                        votersByOption: votersByOption,
+                                        onVote: (index) {
+                                          if (lobbyId != null) {
+                                            _scenarioService.castVote(
+                                                lobbyId, index);
+                                          }
+                                        },
                                         onLostLifesChanged: (newLostLifes) {
                                           if (_lostLifes != newLostLifes) {
                                             setState(() {
@@ -413,15 +493,21 @@ class _StoryScreenState extends State<StoryScreen> {
                                             return;
                                           }
 
-                                          if (_lastChoiceId ==
-                                              choice.nextCardId) {
-                                            _choiceClickCount++;
-                                          } else {
-                                            _choiceClickCount = 1;
-                                            _lastChoiceId = choice.nextCardId;
-                                          }
+                                          // In voting mode the host confirms a
+                                          // single time via the "Maak keuze
+                                          // definitief" button, so skip the
+                                          // legacy double-tap gate.
+                                          if (!votingEnabled) {
+                                            if (_lastChoiceId ==
+                                                choice.nextCardId) {
+                                              _choiceClickCount++;
+                                            } else {
+                                              _choiceClickCount = 1;
+                                              _lastChoiceId = choice.nextCardId;
+                                            }
 
-                                          if (_choiceClickCount != 2) return;
+                                            if (_choiceClickCount != 2) return;
+                                          }
 
                                           if (isHost &&
                                               choice.nextCardId.isNotEmpty) {
@@ -553,13 +639,11 @@ class _StoryScreenState extends State<StoryScreen> {
                                               }
                                             } else {
                                               if (lobbyId != null) {
-                                                await FirebaseFirestore.instance
-                                                    .collection('lobbies')
-                                                    .doc(lobbyId)
-                                                    .update({
-                                                  'currentScenarioId':
+                                                await _scenarioService
+                                                    .advanceToScenario(
+                                                  lobbyId,
                                                   choice.nextCardId,
-                                                });
+                                                );
                                               } else {
                                                 await _loadScenario(
                                                     choice.nextCardId);
@@ -617,12 +701,10 @@ class _StoryScreenState extends State<StoryScreen> {
                                     nextCardId != null &&
                                     nextCardId.isNotEmpty) {
                                   if (lobbyId != null) {
-                                    await FirebaseFirestore.instance
-                                        .collection('lobbies')
-                                        .doc(lobbyId)
-                                        .update({
-                                      'currentScenarioId': nextCardId,
-                                    });
+                                    await _scenarioService.advanceToScenario(
+                                      lobbyId,
+                                      nextCardId,
+                                    );
                                   } else {
                                     await _loadScenario(nextCardId);
                                   }

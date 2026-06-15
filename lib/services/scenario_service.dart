@@ -74,6 +74,38 @@ class ScenarioService {
   Future<void> moveToNextScenario(String lobbyId, String nextScenarioId) async {
     await _firestore.collection('lobbies').doc(lobbyId).update({
       'currentScenarioId': nextScenarioId,
+      // Reset the vote tally so the new scenario starts clean.
+      'votes': <String, dynamic>{},
+    });
+  }
+
+  // ── Voting ─────────────────────────────────────────────────────────────────
+
+  /// Records (or changes) the current user's vote for [optionIndex] on the
+  /// active scenario.
+  ///
+  /// Uses a dotted field path (`votes.<uid>`) so only this player's entry in
+  /// the `votes` map is written — everyone else's votes are left untouched.
+  Future<void> castVote(String lobbyId, int optionIndex) async {
+    final user = await _requireUser();
+    await _firestore.collection('lobbies').doc(lobbyId).update({
+      'votes.${user.uid}': optionIndex,
+    });
+  }
+
+  /// Clears every vote for the lobby. Called when moving to a new scenario.
+  Future<void> clearVotes(String lobbyId) async {
+    await _firestore.collection('lobbies').doc(lobbyId).update({
+      'votes': <String, dynamic>{},
+    });
+  }
+
+  /// Advances the lobby to [scenarioId] and resets the votes in a single write,
+  /// so listeners never briefly see new-scenario + stale-votes.
+  Future<void> advanceToScenario(String lobbyId, String scenarioId) async {
+    await _firestore.collection('lobbies').doc(lobbyId).update({
+      'currentScenarioId': scenarioId,
+      'votes': <String, dynamic>{},
     });
   }
 
