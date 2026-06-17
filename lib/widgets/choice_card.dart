@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../models/story_card_data.dart';
 import '../models/scenario_data.dart';
+import '../models/lobby/lobby_player.dart';
 
 class ChoiceCard extends StatefulWidget {
   final List<ChoiceData> choices;
@@ -16,6 +17,25 @@ class ChoiceCard extends StatefulWidget {
   final int lostLifes;
   final void Function(int newLostLifes)? onLostLifesChanged;
 
+  // ── Voting ──────────────────────────────────────────────────────────────
+  /// Id of the scenario these choices belong to. Used to reset the local
+  /// selection whenever the scenario changes.
+  final String? scenarioId;
+
+  /// When true, tapping an option casts a (re-)vote instead of immediately
+  /// advancing. The host additionally gets a "make final" button. Disabled in
+  /// the single-device/legacy flow (no lobby).
+  final bool votingEnabled;
+
+  /// Uid of the current user — used to highlight the player's own avatar.
+  final String? currentUid;
+
+  /// Option index -> the players who voted for it. Drives the avatar badges.
+  final Map<int, List<LobbyPlayer>> votersByOption;
+
+  /// Called when a player taps an option to cast or change their vote.
+  final void Function(int index)? onVote;
+
   const ChoiceCard({
     Key? key,
     required this.allScenarios,
@@ -27,6 +47,11 @@ class ChoiceCard extends StatefulWidget {
     this.maxInterventionCards = 8,
     this.lostLifes = 0,
     this.onLostLifesChanged,
+    this.scenarioId,
+    this.votingEnabled = false,
+    this.currentUid,
+    this.votersByOption = const {},
+    this.onVote,
   }) : super(key: key);
 
   @override
@@ -71,11 +96,17 @@ class _ChoiceCardState extends State<ChoiceCard> {
     super.didUpdateWidget(oldWidget);
     // When a life is lost, play the break animation above all widgets via Overlay
     if (widget.lostLifes > oldWidget.lostLifes) {
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (mounted) {
-      _playHeartBreakOverlay(widget.lostLifes - 1);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _playHeartBreakOverlay(widget.lostLifes - 1);
+        }
+      });
     }
-  });
+    // A new scenario was loaded — drop any stale local selection so the new
+    // options start unselected for this client.
+    if (widget.scenarioId != oldWidget.scenarioId) {
+      _selectedIndex = null;
+      _confirmedIndex = null;
     }
   }
 
@@ -140,7 +171,7 @@ class _ChoiceCardState extends State<ChoiceCard> {
                 height: screenHeight,
                 child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                   child: Align(
                     alignment: Alignment.center,
                     child: Container(
@@ -174,13 +205,13 @@ class _ChoiceCardState extends State<ChoiceCard> {
                                 shrinkWrap: true,
                                 itemCount: widget.allScenarios.length,
                                 separatorBuilder: (context, i) =>
-                                    const Divider(height: 1),
+                                const Divider(height: 1),
                                 itemBuilder: (context, i) {
                                   final scenario = widget.allScenarios[i];
                                   final scenarioTitle =
-                                      scenario.title.trim().isEmpty
-                                          ? scenario.text.trim()
-                                          : scenario.title.trim();
+                                  scenario.title.trim().isEmpty
+                                      ? scenario.text.trim()
+                                      : scenario.title.trim();
                                   final isSelected =
                                       selectedScenarioId == scenario.id;
 
@@ -204,8 +235,8 @@ class _ChoiceCardState extends State<ChoiceCard> {
                                         // Roep de parent callback aan zodat StoryScreen het scenario kan wisselen
                                         if (widget.onChoiceSelected != null) {
                                           final choice =
-                                              widget.choices.firstWhere(
-                                            (c) => c.nextCardId == scenario.id,
+                                          widget.choices.firstWhere(
+                                                (c) => c.nextCardId == scenario.id,
                                             orElse: () => ChoiceData(
                                                 text: scenarioTitle,
                                                 nextCardId: scenario.id),
@@ -216,7 +247,7 @@ class _ChoiceCardState extends State<ChoiceCard> {
                                         final isEndScenario =
                                             scenario.answers.isNotEmpty &&
                                                 scenario.answers.every((a) =>
-                                                    a.nextScenarioId == null);
+                                                a.nextScenarioId == null);
                                         if (isEndScenario &&
                                             widget.onLostLifesChanged != null) {
                                           widget.onLostLifesChanged!(
@@ -258,8 +289,18 @@ class _ChoiceCardState extends State<ChoiceCard> {
   }
 
   void _handleChoiceTap(int index) {
-    final choice = widget.choices[index];
     if (widget.isLocked) return;
+
+    if (widget.votingEnabled) {
+      // Multiplayer voting: every player (host included) taps to cast or
+      // change their vote. Re-tapping a different option moves the vote.
+      setState(() => _selectedIndex = index);
+      widget.onVote?.call(index);
+      return;
+    }
+
+    // Legacy single-device flow: first tap selects, second tap confirms.
+    final choice = widget.choices[index];
     if (_selectedIndex == index) {
       setState(() => _confirmedIndex = index);
       widget.onChoiceSelected?.call(choice);
@@ -271,6 +312,16 @@ class _ChoiceCardState extends State<ChoiceCard> {
         _confirmedIndex = null;
       });
     }
+  }
+
+  /// Host-only: lock in the currently selected option as the group's final
+  /// answer and trigger the advance logic in StoryScreen.
+  void _confirmHostChoice() {
+    final index = _selectedIndex;
+    if (index == null || widget.isLocked) return;
+    setState(() => _confirmedIndex = index);
+    widget.onChoiceSelected?.call(widget.choices[index]);
+    _checkEndScenarioAndShowJoker();
   }
 
   @override
@@ -353,19 +404,74 @@ class _ChoiceCardState extends State<ChoiceCard> {
             ],
           ),
           const SizedBox(height: 4),
-          // Geen scroll, alle antwoorden zichtbaar maken
-          ...widget.choices.asMap().entries.map(
-                (entry) => _ChoiceButton(
-                  choice: entry.value,
-                  selected: _selectedIndex == entry.key,
-                  isLocked: widget.isLocked,
-                  onTap: () => _handleChoiceTap(entry.key),
-                  bottomPadding: showBottomPadding ? 40 : 16,
+          // Choices fill the available space (scroll if there isn't enough
+          // room once avatar badges are added), with the host's confirm
+          // button pinned underneath.
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ...widget.choices.asMap().entries.map(
+                        (entry) {
+                      final index = entry.key;
+                      final voters =
+                          widget.votersByOption[index] ?? const <LobbyPlayer>[];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _ChoiceButton(
+                            choice: entry.value,
+                            selected: _selectedIndex == index,
+                            isLocked: widget.isLocked,
+                            onTap: () => _handleChoiceTap(index),
+                            bottomPadding: showBottomPadding ? 40 : 16,
+                          ),
+                          if (voters.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 6, bottom: 10, top: 2),
+                              child: _VoterAvatars(
+                                voters: voters,
+                                currentUid: widget.currentUid,
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                  if (showBottomPadding) const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+          if (widget.votingEnabled && widget.isHost) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: (_selectedIndex == null || widget.isLocked)
+                    ? null
+                    : _confirmHostChoice,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFE4007D),
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor:
+                  const Color(0xFFE4007D).withOpacity(0.35),
+                  disabledForegroundColor: Colors.white70,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Maak keuze definitief',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
                 ),
               ),
-          if (showBottomPadding)
-            const SizedBox(
-                height: 32), // extra padding onderaan alleen als er ruimte is
+            ),
+            const SizedBox(height: 4),
+          ],
         ],
       ),
     );
@@ -444,7 +550,7 @@ class _HeartBreakOverlayState extends State<HeartBreakOverlay>
               final fullScale = settledScale + (1.05 * secondGrow);
               final fullOpacity = (1 - fullOut).clamp(0.0, 1.0);
               final heartBreakOpacity =
-                  (breakIn * (1 - breakOut)).clamp(0.0, 1.0);
+              (breakIn * (1 - breakOut)).clamp(0.0, 1.0);
               final emptyOpacity = emptyIn.clamp(0.0, 1.0);
 
               return Stack(
@@ -722,8 +828,8 @@ class _JokerJumpscareDialogState extends State<_JokerJumpscareDialog>
                                 animation: _controller,
                                 builder: (context, child) {
                                   final pulse = (math.sin(
-                                              _controller.value * math.pi * 12) +
-                                          1) /
+                                      _controller.value * math.pi * 12) +
+                                      1) /
                                       2;
                                   return Opacity(
                                     opacity: 0.45 + (0.55 * pulse),
@@ -779,7 +885,7 @@ class _ChoiceButton extends StatelessWidget {
         width: double.infinity,
         margin: const EdgeInsets.only(bottom: 10),
         padding:
-            EdgeInsets.fromLTRB(18, 16, 18, 16), // minder padding rondom tekst
+        EdgeInsets.fromLTRB(18, 16, 18, 16), // minder padding rondom tekst
         decoration: BoxDecoration(
           color: selected ? const Color(0xFF273583) : const Color(0xFF5F699F),
           borderRadius: BorderRadius.circular(10),
@@ -793,6 +899,73 @@ class _ChoiceButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Row of overlapping avatar badges shown beneath an option, one per player
+/// who voted for it. The current user's badge is outlined in pink.
+class _VoterAvatars extends StatelessWidget {
+  final List<LobbyPlayer> voters;
+  final String? currentUid;
+
+  const _VoterAvatars({
+    required this.voters,
+    this.currentUid,
+  });
+
+  static const List<String> _defaultAvatars = [
+    'assets/images/3d_avatar_1.png',
+    'assets/images/3d_avatar_2.png',
+    'assets/images/3d_avatar_3.png',
+    'assets/images/3d_avatar_4.png',
+    'assets/images/3d_avatar_5.png',
+    'assets/images/3d_avatar_6.png',
+    'assets/images/3d_avatar_7.png',
+    'assets/images/3d_avatar_8.png',
+    'assets/images/3d_avatar_9.png',
+  ];
+
+  String _assetFor(LobbyPlayer player) {
+    final avatar = player.selectedAvatar;
+    if (avatar != null && avatar >= 0 && avatar < _defaultAvatars.length) {
+      return _defaultAvatars[avatar];
+    }
+    return _defaultAvatars[0];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const double size = 28;
+    return Wrap(
+      spacing: -8, // negative spacing makes the badges overlap slightly
+      runSpacing: 4,
+      children: voters.map((player) {
+        final bool isMe = currentUid != null && player.uid == currentUid;
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white,
+            border: Border.all(
+              color: isMe ? const Color(0xFFE4007D) : Colors.white,
+              width: 2,
+            ),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x33000000),
+                blurRadius: 2,
+                offset: Offset(0, 1),
+              ),
+            ],
+            image: DecorationImage(
+              image: AssetImage(_assetFor(player)),
+              fit: BoxFit.cover,
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 }
